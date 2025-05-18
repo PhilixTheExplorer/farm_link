@@ -89,8 +89,8 @@ class _LoginRegisterViewState extends State<LoginRegisterView> with SingleTicker
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: NetworkImage(
-              'https://images.unsplash.com/photo-1464638681273-0962e9b53566?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+            image: AssetImage(
+              'assets/home.jpg',
             ),
             fit: BoxFit.cover,
             opacity: 0.2,
