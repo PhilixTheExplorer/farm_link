@@ -4,7 +4,7 @@ import '../components/thai_text_field.dart';
 import '../theme/app_colors.dart';
 
 class CartView extends StatefulWidget {
-  const CartView({Key? key}) : super(key: key);
+  const CartView({super.key});
 
   @override
   State<CartView> createState() => _CartViewState();

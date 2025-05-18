@@ -1,3 +1,4 @@
+import 'package:farm_link/screens/connect_test_view.dart';
 import 'package:farm_link/screens/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -43,8 +44,9 @@ class MyApp extends StatelessWidget {
       title: 'FarmLink',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      initialRoute: '/home',
+      initialRoute: '/login',
       routes: {
+        '/connect-test': (context) => ConnectTestView(),
         '/home': (context) => const HomeView(),
         '/login': (context) => const LoginRegisterView(),
         '/farmer-dashboard': (context) => const FarmerDashboardView(),
