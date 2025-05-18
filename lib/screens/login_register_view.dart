@@ -10,14 +10,20 @@ class LoginRegisterView extends StatefulWidget {
   State<LoginRegisterView> createState() => _LoginRegisterViewState();
 }
 
-class _LoginRegisterViewState extends State<LoginRegisterView>
-    with SingleTickerProviderStateMixin {
+class _LoginRegisterViewState extends State<LoginRegisterView> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  double _currentHeight = 260;
+
   final _loginFormKey = GlobalKey<FormState>();
   final _registerFormKey = GlobalKey<FormState>();
 
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  // Separate controllers for login
+  final _loginEmailController = TextEditingController();
+  final _loginPasswordController = TextEditingController();
+
+  // Separate controllers for register
+  final _registerEmailController = TextEditingController();
+  final _registerPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
   String _selectedRole = 'Farmer';
@@ -27,52 +33,50 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this)
+      ..addListener(_handleTabChange);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
+    _tabController
+      ..removeListener(_handleTabChange)
+      ..dispose();
+
+    // Dispose all controllers
+    _loginEmailController.dispose();
+    _loginPasswordController.dispose();
+    _registerEmailController.dispose();
+    _registerPasswordController.dispose();
     _confirmPasswordController.dispose();
+
     super.dispose();
   }
 
-  void _togglePasswordVisibility() {
+  void _handleTabChange() {
     setState(() {
-      _isPasswordVisible = !_isPasswordVisible;
+      _currentHeight = _tabController.index == 0 ? 260 : 460;
     });
   }
 
+  void _togglePasswordVisibility() {
+    setState(() => _isPasswordVisible = !_isPasswordVisible);
+  }
+
   void _handleSubmit() {
-    // Check which form to validate based on current tab
-    final formKey =
-        _tabController.index == 0 ? _loginFormKey : _registerFormKey;
+    final formKey = _tabController.index == 0 ? _loginFormKey : _registerFormKey;
 
     if (formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+      setState(() => _isLoading = true);
 
-      // Simulate API call
       Future.delayed(const Duration(seconds: 2), () {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
 
-        // Navigate based on role
-        if (_selectedRole == 'Farmer') {
-          // Navigate to Farmer Dashboard
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Navigating to Farmer Dashboard')),
-          );
-        } else {
-          // Navigate to Buyer Marketplace
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Navigating to Buyer Marketplace')),
-          );
-        }
+        final destination = _selectedRole == 'Farmer' ? 'Farmer Dashboard' : 'Buyer Marketplace';
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Navigating to $destination')),
+        );
       });
     }
   }
@@ -99,44 +103,33 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Logo and App Name
                   const Image(
                     image: AssetImage('assets/logo.png'),
                     width: 200,
                     height: 200,
                   ),
-                  // Card with Login/Register Form
                   Card(
                     elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
                       child: Column(
                         children: [
-                          // Tab Bar
                           TabBar(
                             controller: _tabController,
-                            tabs: const [
-                              Tab(text: 'Login'),
-                              Tab(text: 'Register'),
-                            ],
+                            tabs: const [Tab(text: 'Login'), Tab(text: 'Register')],
                             indicatorColor: AppColors.ricePaddyGreen,
                             labelColor: AppColors.ricePaddyGreen,
                             unselectedLabelColor: AppColors.palmAshGray,
-                            indicatorSize: TabBarIndicatorSize.tab,
                           ),
-          
                           const SizedBox(height: 24),
-          
-                          // Form
-                          SizedBox(
-                            height: _tabController.index == 0 ? 260 : 460,
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            height: _currentHeight,
                             child: TabBarView(
                               controller: _tabController,
                               children: [
-                                // Login Tab
+                                // Login Form
                                 Form(
                                   key: _loginFormKey,
                                   child: Column(
@@ -144,42 +137,25 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                                       ThaiTextField(
                                         label: 'Email',
                                         hintText: 'Enter your email',
-                                        controller: _emailController,
-                                        keyboardType:
-                                            TextInputType.emailAddress,
+                                        controller: _loginEmailController,
+                                        keyboardType: TextInputType.emailAddress,
                                         prefixIcon: Icons.email_outlined,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter your email';
-                                          }
-                                          return null;
-                                        },
+                                        validator: (value) =>
+                                        value == null || value.isEmpty ? 'Please enter your email' : null,
                                       ),
-          
                                       const SizedBox(height: 16),
-          
                                       ThaiTextField(
                                         label: 'Password',
                                         hintText: 'Enter your password',
-                                        controller: _passwordController,
+                                        controller: _loginPasswordController,
                                         obscureText: !_isPasswordVisible,
                                         prefixIcon: Icons.lock_outline,
-                                        suffixIcon:
-                                            _isPasswordVisible
-                                                ? Icons.visibility_outlined
-                                                : Icons.visibility_off_outlined,
-                                        onSuffixIconPressed:
-                                            _togglePasswordVisibility,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter your password';
-                                          }
-                                          return null;
-                                        },
+                                        suffixIcon: _isPasswordVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                        onSuffixIconPressed: _togglePasswordVisibility,
+                                        validator: (value) =>
+                                        value == null || value.isEmpty ? 'Please enter your password' : null,
                                       ),
-          
                                       const SizedBox(height: 24),
-          
                                       ThaiButton(
                                         label: 'Login',
                                         onPressed: _handleSubmit,
@@ -189,8 +165,8 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                                     ],
                                   ),
                                 ),
-          
-                                // Register Tab
+
+                                // Register Form
                                 Form(
                                   key: _registerFormKey,
                                   child: Column(
@@ -198,42 +174,25 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                                       ThaiTextField(
                                         label: 'Email',
                                         hintText: 'Enter your email',
-                                        controller: _emailController,
-                                        keyboardType:
-                                            TextInputType.emailAddress,
+                                        controller: _registerEmailController,
+                                        keyboardType: TextInputType.emailAddress,
                                         prefixIcon: Icons.email_outlined,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter your email';
-                                          }
-                                          return null;
-                                        },
+                                        validator: (value) =>
+                                        value == null || value.isEmpty ? 'Please enter your email' : null,
                                       ),
-          
                                       const SizedBox(height: 16),
-          
                                       ThaiTextField(
                                         label: 'Password',
                                         hintText: 'Enter your password',
-                                        controller: _passwordController,
+                                        controller: _registerPasswordController,
                                         obscureText: !_isPasswordVisible,
                                         prefixIcon: Icons.lock_outline,
-                                        suffixIcon:
-                                            _isPasswordVisible
-                                                ? Icons.visibility_outlined
-                                                : Icons.visibility_off_outlined,
-                                        onSuffixIconPressed:
-                                            _togglePasswordVisibility,
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please enter your password';
-                                          }
-                                          return null;
-                                        },
+                                        suffixIcon: _isPasswordVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                        onSuffixIconPressed: _togglePasswordVisibility,
+                                        validator: (value) =>
+                                        value == null || value.isEmpty ? 'Please enter your password' : null,
                                       ),
-          
                                       const SizedBox(height: 16),
-          
                                       ThaiTextField(
                                         label: 'Confirm Password',
                                         hintText: 'Confirm your password',
@@ -241,36 +200,20 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                                         obscureText: !_isPasswordVisible,
                                         prefixIcon: Icons.lock_outline,
                                         validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Please confirm your password';
-                                          }
-                                          if (value !=
-                                              _passwordController.text) {
-                                            return 'Passwords do not match';
-                                          }
+                                          if (value == null || value.isEmpty) return 'Please confirm your password';
+                                          if (value != _registerPasswordController.text) return 'Passwords do not match';
                                           return null;
                                         },
                                       ),
-          
                                       const SizedBox(height: 16),
-          
-                                      // Role Selector
+
+                                      // Role selection
                                       Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Padding(
-                                            padding: const EdgeInsets.only(
-                                              left: 4,
-                                              bottom: 8,
-                                            ),
-                                            child: Text(
-                                              'I am a:',
-                                              style: theme.textTheme.bodyMedium
-                                                  ?.copyWith(
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                            ),
+                                            padding: const EdgeInsets.only(left: 4, bottom: 8),
+                                            child: Text('I am a:', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500)),
                                           ),
                                           Row(
                                             children: [
@@ -279,15 +222,9 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                                                   title: const Text('Farmer'),
                                                   value: 'Farmer',
                                                   groupValue: _selectedRole,
-                                                  onChanged: (value) {
-                                                    setState(() {
-                                                      _selectedRole = value!;
-                                                    });
-                                                  },
-                                                  activeColor:
-                                                      AppColors.ricePaddyGreen,
-                                                  contentPadding:
-                                                      EdgeInsets.zero,
+                                                  onChanged: (value) => setState(() => _selectedRole = value!),
+                                                  activeColor: AppColors.ricePaddyGreen,
+                                                  contentPadding: EdgeInsets.zero,
                                                 ),
                                               ),
                                               Expanded(
@@ -295,30 +232,23 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                                                   title: const Text('Buyer'),
                                                   value: 'Buyer',
                                                   groupValue: _selectedRole,
-                                                  onChanged: (value) {
-                                                    setState(() {
-                                                      _selectedRole = value!;
-                                                    });
-                                                  },
-                                                  activeColor:
-                                                      AppColors.ricePaddyGreen,
-                                                  contentPadding:
-                                                      EdgeInsets.zero,
+                                                  onChanged: (value) => setState(() => _selectedRole = value!),
+                                                  activeColor: AppColors.ricePaddyGreen,
+                                                  contentPadding: EdgeInsets.zero,
                                                 ),
                                               ),
                                             ],
                                           ),
                                         ],
                                       ),
-          
+
                                       const SizedBox(height: 24),
-          
                                       ThaiButton(
                                         label: 'Register',
                                         onPressed: _handleSubmit,
-                                        variant: ThaiButtonVariant.secondary,
                                         isLoading: _isLoading,
                                         isFullWidth: true,
+                                        variant: ThaiButtonVariant.secondary,
                                       ),
                                     ],
                                   ),
@@ -330,15 +260,10 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                       ),
                     ),
                   ),
-          
                   const SizedBox(height: 24),
-          
-                  // Footer Text
                   Text(
                     'Connecting Thai Farmers to Buyers',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.palmAshGray,
-                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.palmAshGray),
                   ),
                 ],
               ),
