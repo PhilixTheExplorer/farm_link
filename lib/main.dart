@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       title: 'FarmLink',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      initialRoute: '/farmer-dashboard',
+      initialRoute: '/buyer-marketplace',
       routes: {
         '/connect-test': (context) => ConnectTestView(),
         '/home': (context) => const HomeView(),

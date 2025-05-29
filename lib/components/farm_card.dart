@@ -9,6 +9,7 @@ class FarmCard extends StatelessWidget {
   final String category;
   final String? quantity;
   final String? unit;
+  final bool showDescription;
   final VoidCallback onTap;
 
   const FarmCard({
@@ -20,6 +21,7 @@ class FarmCard extends StatelessWidget {
     required this.category,
     this.quantity,
     this.unit,
+    this.showDescription = true,
     required this.onTap,
   }) : super(key: key);
 
@@ -120,17 +122,18 @@ class FarmCard extends StatelessWidget {
                     ],
                   ),
 
-                  const SizedBox(height: 8),
-
-                  // Description
-                  Text(
-                    description,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: AppColors.palmAshGray,
+                  // Description (conditional)
+                  if (showDescription) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      description,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.palmAshGray,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  ],
                 ],
               ),
             ),
