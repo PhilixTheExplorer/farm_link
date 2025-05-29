@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../components/thai_button.dart';
 import '../components/app_drawer.dart';
 import '../theme/app_colors.dart';
+import '../core/user_service.dart';
+import '../models/user.dart';
 
 class ProfileSettingsView extends StatefulWidget {
   const ProfileSettingsView({super.key});
@@ -12,38 +14,7 @@ class ProfileSettingsView extends StatefulWidget {
 
 class _ProfileSettingsViewState extends State<ProfileSettingsView> {
   bool _isEnglish = true;
-
-  // Sample user data
-  final Map<String, dynamic> _userData = {
-    'email': 'user@example.com',
-    'role': 'Buyer',
-    'name': 'John Doe',
-    'phone': '+66 81 234 5678',
-    'location': 'Bangkok',
-    'joinDate': 'May 2023',
-  };
-
-  // Sample orders
-  final List<Map<String, dynamic>> _orders = [
-    {
-      'id': 'FL-2023-0042',
-      'date': 'May 16, 2023',
-      'total': '฿440',
-      'status': 'Completed',
-    },
-    {
-      'id': 'FL-2023-0036',
-      'date': 'May 10, 2023',
-      'total': '฿320',
-      'status': 'Completed',
-    },
-    {
-      'id': 'FL-2023-0028',
-      'date': 'May 3, 2023',
-      'total': '฿180',
-      'status': 'Completed',
-    },
-  ];
+  final UserService _userService = UserService();
 
   void _toggleLanguage() {
     setState(() {
@@ -58,6 +29,47 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
         ),
         backgroundColor: AppColors.ricePaddyGreen,
       ),
+    );
+  }
+
+  void _toggleUserRole() {
+    final userService = UserService();
+    final currentRole = userService.currentUserRole;
+    final newRole =
+        currentRole == UserRole.farmer ? UserRole.buyer : UserRole.farmer;
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Switch Role'),
+            content: Text(
+              'Switch from ${currentRole == UserRole.farmer ? 'Farmer' : 'Buyer'} to ${newRole == UserRole.farmer ? 'Farmer' : 'Buyer'}?\n\nThis will change your available features and navigation options.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  userService.switchUserRole(newRole);
+                  setState(() {}); // Refresh the UI
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Switched to ${newRole == UserRole.farmer ? 'Farmer' : 'Buyer'} mode',
+                      ),
+                      backgroundColor: AppColors.ricePaddyGreen,
+                    ),
+                  );
+                },
+                child: const Text('Switch'),
+              ),
+            ],
+          ),
     );
   }
 
@@ -110,22 +122,32 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             Center(
               child: Column(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 50,
-                    backgroundImage: NetworkImage(
-                      'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80',
-                    ),
+                    backgroundImage:
+                        _userService.currentUser?.profileImageUrl != null
+                            ? NetworkImage(
+                              _userService.currentUser!.profileImageUrl!,
+                            )
+                            : null,
+                    child:
+                        _userService.currentUser?.profileImageUrl == null
+                            ? Icon(Icons.person, size: 50, color: Colors.white)
+                            : null,
+                    backgroundColor: AppColors.ricePaddyGreen,
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _userData['name'],
+                    _userService.currentUser?.name ?? 'User',
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   Text(
-                    _userData['role'],
+                    _userService.currentUserRole == UserRole.farmer
+                        ? 'Farmer'
+                        : 'Buyer',
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: AppColors.ricePaddyGreen,
                     ),
@@ -154,28 +176,31 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       context,
                       icon: Icons.email_outlined,
                       label: 'Email',
-                      value: _userData['email'],
+                      value: _userService.currentUser?.email ?? 'Not set',
                     ),
                     const Divider(height: 24),
                     _buildInfoRow(
                       context,
                       icon: Icons.phone_outlined,
                       label: 'Phone',
-                      value: _userData['phone'],
+                      value: _userService.currentUser?.phone ?? 'Not set',
                     ),
                     const Divider(height: 24),
                     _buildInfoRow(
                       context,
                       icon: Icons.location_on_outlined,
                       label: 'Location',
-                      value: _userData['location'],
+                      value: _userService.currentUser?.location ?? 'Not set',
                     ),
                     const Divider(height: 24),
                     _buildInfoRow(
                       context,
                       icon: Icons.calendar_today_outlined,
                       label: 'Joined',
-                      value: _userData['joinDate'],
+                      value:
+                          _userService.currentUser?.joinDate != null
+                              ? '${_userService.currentUser!.joinDate.month}/${_userService.currentUser!.joinDate.year}'
+                              : 'Unknown',
                     ),
                   ],
                 ),
@@ -184,19 +209,21 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
 
             const SizedBox(height: 32),
 
-            // My Orders
+            // Role-specific Information
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'My Orders',
+                  _userService.currentUserRole == UserRole.farmer
+                      ? 'Farm Details'
+                      : 'My Orders',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 TextButton(
                   onPressed: () {
-                    // View all orders
+                    // Navigate to detailed view
                   },
                   child: const Text('View All'),
                   style: TextButton.styleFrom(
@@ -207,77 +234,81 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             ),
             const SizedBox(height: 16),
 
-            // Order List
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _orders.length,
-              itemBuilder: (context, index) {
-                final order = _orders[index];
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          order['id'],
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          order['total'],
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: AppColors.tamarindBrown,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              order['date'],
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.ricePaddyGreen.withOpacity(
-                                  0.2,
-                                ),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                order['status'],
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.ricePaddyGreen,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      // View order details
-                    },
+            // Role-specific content
+            if (_userService.currentUserRole == UserRole.farmer &&
+                _userService.farmerData != null)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.agriculture_outlined,
+                        label: 'Farm Name',
+                        value: _userService.farmerData!.farmName,
+                      ),
+                      const Divider(height: 24),
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.landscape_outlined,
+                        label: 'Farm Size',
+                        value: '${_userService.farmerData!.farmSize} acres',
+                      ),
+                      const Divider(height: 24),
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.eco_outlined,
+                        label: 'Crops',
+                        value: _userService.farmerData!.cropTypes.join(', '),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              )
+            else if (_userService.currentUserRole == UserRole.buyer &&
+                _userService.buyerData != null)
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.shopping_bag_outlined,
+                        label: 'Total Orders',
+                        value: '${_userService.buyerData!.totalOrders}',
+                      ),
+                      const Divider(height: 24),
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.attach_money_outlined,
+                        label: 'Total Spent',
+                        value:
+                            '฿${_userService.buyerData!.totalSpent.toStringAsFixed(2)}',
+                      ),
+                      const Divider(height: 24),
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.favorite_outline,
+                        label: 'Dietary Preferences',
+                        value: _userService.buyerData!.dietaryPreferences.join(
+                          ', ',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              const Card(
+                child: Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text('No additional information available.'),
+                ),
+              ),
 
             const SizedBox(height: 32),
 
@@ -300,6 +331,19 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                     value: _isEnglish,
                     onChanged: (value) => _toggleLanguage(),
                     activeColor: AppColors.ricePaddyGreen,
+                  ),
+
+                  const Divider(height: 1),
+
+                  // Role Switcher (For Demo)
+                  ListTile(
+                    leading: const Icon(Icons.swap_horiz),
+                    title: const Text('Switch Role'),
+                    subtitle: Text(
+                      'Current: ${UserService().currentUserRole == UserRole.farmer ? 'Farmer' : 'Buyer'}',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: _toggleUserRole,
                   ),
 
                   const Divider(height: 1),

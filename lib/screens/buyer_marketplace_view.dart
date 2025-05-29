@@ -124,193 +124,195 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Search Bar and Filter
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.bambooCream,
-              border: Border(
-                bottom: BorderSide(
-                  color: AppColors.palmAshGray.withOpacity(0.2),
-                  width: 1,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Search Bar and Filter
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.bambooCream,
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppColors.palmAshGray.withOpacity(0.2),
+                    width: 1,
+                  ),
                 ),
               ),
-            ),
-            child: Row(
-              children: [
-                // Search Box
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search products...',
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: AppColors.palmAshGray,
-                      ),
-                      suffixIcon:
-                          _searchQuery.isNotEmpty
-                              ? IconButton(
-                                icon: Icon(
-                                  Icons.clear,
-                                  color: AppColors.palmAshGray,
-                                ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {
-                                    _searchQuery = '';
-                                  });
-                                },
-                              )
-                              : null,
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.palmAshGray,
-                      ),
-                    ),
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // Filter Button
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.ricePaddyGreen,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: IconButton(
-                    onPressed: () {
-                      // Show filter options
-                      _showFilterBottomSheet(context);
-                    },
-                    icon: Icon(Icons.tune, color: Colors.white),
-                    tooltip: 'Filter',
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Category Filters
-          Container(
-            height: 56,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _categories.length,
-              itemBuilder: (context, index) {
-                final category = _categories[index];
-                final isSelected = category == _selectedCategory;
-
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(category),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      if (selected) {
+              child: Row(
+                children: [
+                  // Search Box
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
                         setState(() {
-                          _selectedCategory = category;
+                          _searchQuery = value;
                         });
-                      }
-                    },
-                    backgroundColor: AppColors.bambooCream,
-                    selectedColor: AppColors.ricePaddyGreen,
-                    labelStyle: theme.textTheme.bodyMedium?.copyWith(
-                      color:
-                          isSelected ? Colors.white : AppColors.charcoalBlack,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search products...',
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: AppColors.palmAshGray,
+                        ),
+                        suffixIcon:
+                            _searchQuery.isNotEmpty
+                                ? IconButton(
+                                  icon: Icon(
+                                    Icons.clear,
+                                    color: AppColors.palmAshGray,
+                                  ),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _searchQuery = '';
+                                    });
+                                  },
+                                )
+                                : null,
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.palmAshGray,
+                        ),
+                      ),
+                      style: theme.textTheme.bodyMedium,
                     ),
                   ),
-                );
-              },
-            ),
-          ),
 
-          // Products Grid/List
-          Expanded(
-            child:
-                filteredProducts.isEmpty
-                    ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.inventory_2_outlined,
-                            size: 64,
-                            color: AppColors.palmAshGray,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No products found',
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: AppColors.palmAshGray,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Try selecting a different category',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.palmAshGray,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    )
-                    : GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.75,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                          ),
-                      itemCount: filteredProducts.length,
-                      itemBuilder: (context, index) {
-                        final product = filteredProducts[index];
-                        return FarmCard(
-                          imageUrl: product['imageUrl']!,
-                          title: product['title']!,
-                          price: product['price']!,
-                          description: product['description']!,
-                          category: product['category']!,
-                          quantity: product['quantity'],
-                          unit: product['unit'],
-                          showDescription: false,
-                          onTap: () {
-                            // Navigate to product detail
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Viewing ${product['title']}'),
-                              ),
-                            );
-                          },
-                        );
-                      },
+                  const SizedBox(width: 12),
+
+                  // Filter Button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.ricePaddyGreen,
+                      borderRadius: BorderRadius.circular(12),
                     ),
-          ),
-        ],
+                    child: IconButton(
+                      onPressed: () {
+                        // Show filter options
+                        _showFilterBottomSheet(context);
+                      },
+                      icon: Icon(Icons.tune, color: Colors.white),
+                      tooltip: 'Filter',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Category Filters - Use flexible height
+            Container(
+              constraints: const BoxConstraints(minHeight: 40, maxHeight: 60),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _categories.length,
+                itemBuilder: (context, index) {
+                  final category = _categories[index];
+                  final isSelected = category == _selectedCategory;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(category),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        if (selected) {
+                          setState(() {
+                            _selectedCategory = category;
+                          });
+                        }
+                      },
+                      backgroundColor: AppColors.bambooCream,
+                      selectedColor: AppColors.ricePaddyGreen,
+                      labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                        color:
+                            isSelected ? Colors.white : AppColors.charcoalBlack,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            // Products Grid/List
+            Expanded(
+              child:
+                  filteredProducts.isEmpty
+                      ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.inventory_2_outlined,
+                              size: 64,
+                              color: AppColors.palmAshGray,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No products found',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: AppColors.palmAshGray,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Try selecting a different category',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: AppColors.palmAshGray,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      )
+                      : GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount:
+                              MediaQuery.of(context).size.width > 600 ? 3 : 2,
+                          childAspectRatio: 0.75,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: filteredProducts.length,
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts[index];
+                          return FarmCard(
+                            imageUrl: product['imageUrl']!,
+                            title: product['title']!,
+                            price: product['price']!,
+                            description: product['description']!,
+                            category: product['category']!,
+                            quantity: product['quantity'],
+                            unit: product['unit'],
+                            showDescription: false,
+                            onTap: () {
+                              // Navigate to product detail
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Viewing ${product['title']}'),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+            ),
+          ],
+        ),
       ),
     );
   }

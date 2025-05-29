@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
       navigatorKey: NavigationService.navigatorKey,
-      initialRoute: '/buyer-marketplace',
+      initialRoute: '/login',
       routes: {
         '/connect-test': (context) => ConnectTestView(),
         '/home': (context) => const HomeView(),

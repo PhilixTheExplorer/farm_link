@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../components/thai_button.dart';
 import '../components/thai_text_field.dart';
 import '../theme/app_colors.dart';
+import '../core/user_service.dart';
+import '../models/user.dart';
 
 class LoginRegisterView extends StatefulWidget {
   const LoginRegisterView({super.key});
@@ -59,25 +61,60 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
     setState(() => _isRegisterPasswordVisible = !_isRegisterPasswordVisible);
   }
 
-  void _handleSubmit() {
+  void _handleSubmit() async {
     final formKey =
         _tabController.index == 0 ? _loginFormKey : _registerFormKey;
 
     if (formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => _isLoading = false);
+      final email =
+          _tabController.index == 0
+              ? _loginEmailController.text
+              : _registerEmailController.text;
+      final password =
+          _tabController.index == 0
+              ? _loginPasswordController.text
+              : _registerPasswordController.text;
 
+      bool success;
+
+      if (_tabController.index == 0) {
+        // Login - auto-detect role from email
+        success = await UserService().login(email, password);
+      } else {
+        // Register - for now use same login method (in real app would be separate)
+        success = await UserService().login(email, password);
+        // Note: In real implementation, register would be a separate method
+      }
+
+      setState(() => _isLoading = false);
+
+      if (success) {
+        // Navigate based on detected role
+        final userService = UserService();
         final destination =
-            _selectedRole == 'Farmer'
-                ? 'Farmer Dashboard'
-                : 'Buyer Marketplace';
+            userService.currentUserRole == UserRole.farmer
+                ? '/farmer-dashboard'
+                : '/buyer-marketplace';
 
-        ScaffoldMessenger.of(
+        Navigator.pushNamedAndRemoveUntil(
           context,
-        ).showSnackBar(SnackBar(content: Text('Navigating to $destination')));
-      });
+          destination,
+          (route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _tabController.index == 0
+                  ? 'Login failed. Please check your credentials.'
+                  : 'Registration failed. Please try again.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -242,9 +279,7 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                                         CrossAxisAlignment.center,
                                     children: [
                                       Padding(
-                                        padding: const EdgeInsets.only(
-                                          left: 4,
-                                        ),
+                                        padding: const EdgeInsets.only(left: 4),
                                         child: Text(
                                           'I am a:',
                                           style: theme.textTheme.bodyMedium
@@ -262,8 +297,7 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                                               (value) => setState(
                                                 () => _selectedRole = value!,
                                               ),
-                                          activeColor:
-                                              AppColors.ricePaddyGreen,
+                                          activeColor: AppColors.ricePaddyGreen,
                                           contentPadding: EdgeInsets.zero,
                                           dense: true,
                                         ),
@@ -277,8 +311,7 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                                               (value) => setState(
                                                 () => _selectedRole = value!,
                                               ),
-                                          activeColor:
-                                              AppColors.ricePaddyGreen,
+                                          activeColor: AppColors.ricePaddyGreen,
                                           contentPadding: EdgeInsets.zero,
                                           dense: true,
                                         ),

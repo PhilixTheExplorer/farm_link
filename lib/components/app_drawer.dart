@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../core/user_service.dart';
+import '../models/user.dart';
 
 class AppDrawer extends StatelessWidget {
   final String currentRoute;
@@ -8,13 +10,13 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final userService = UserService();
 
     return Drawer(
       backgroundColor: AppColors.bambooCream,
       child: Column(
         children: [
-          // Header
+          // Header with user profile
           Container(
             width: double.infinity,
             padding: const EdgeInsets.only(
@@ -30,10 +32,51 @@ class AppDrawer extends StatelessWidget {
                 bottomRight: Radius.circular(20),
               ),
             ),
-            child: const Image(
-              image: AssetImage('assets/logo.png'),
-              width: 150,
-              height: 150,
+            child: Row(
+              children: [
+                // User Profile Section
+                CircleAvatar(
+                  radius: 35,
+                  backgroundImage:
+                      userService.currentUser?.profileImageUrl != null
+                          ? NetworkImage(
+                            userService.currentUser!.profileImageUrl!,
+                          )
+                          : null,
+                  backgroundColor: AppColors.palmAshGray.withOpacity(0.3),
+                  child:
+                      userService.currentUser?.profileImageUrl == null
+                          ? const Icon(
+                            Icons.person,
+                            size: 35,
+                            color: Colors.white,
+                          )
+                          : null,
+                ),
+                SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      userService.userName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      userService.currentUserRole == UserRole.farmer
+                          ? 'Farmer'
+                          : 'Buyer',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
 
@@ -41,38 +84,7 @@ class AppDrawer extends StatelessWidget {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 8),
-              children: [
-                _buildDrawerItem(
-                  context,
-                  icon: Icons.storefront,
-                  title: 'Marketplace',
-                  route: '/buyer-marketplace',
-                ),
-                _buildDrawerItem(
-                  context,
-                  icon: Icons.dashboard,
-                  title: 'Farmer Dashboard',
-                  route: '/farmer-dashboard',
-                ),
-                _buildDrawerItem(
-                  context,
-                  icon: Icons.shopping_cart,
-                  title: 'Cart',
-                  route: '/cart',
-                ),
-                _buildDrawerItem(
-                  context,
-                  icon: Icons.eco,
-                  title: 'Impact Tracker',
-                  route: '/impact-tracker',
-                ),
-                _buildDrawerItem(
-                  context,
-                  icon: Icons.person,
-                  title: 'Profile',
-                  route: '/profile-settings',
-                ),
-              ],
+              children: _buildMenuItems(context),
             ),
           ),
 
@@ -200,6 +212,67 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
+  List<Widget> _buildMenuItems(BuildContext context) {
+    final userService = UserService();
+    List<Widget> menuItems = [];
+
+    // Common items for all users
+    menuItems.add(
+      _buildDrawerItem(
+        context,
+        icon: Icons.storefront,
+        title: 'Marketplace',
+        route: '/buyer-marketplace',
+      ),
+    );
+
+    // Role-specific items
+    if (userService.canAccessFarmerDashboard()) {
+      menuItems.add(
+        _buildDrawerItem(
+          context,
+          icon: Icons.dashboard,
+          title: 'Farmer Dashboard',
+          route: '/farmer-dashboard',
+        ),
+      );
+    }
+
+    if (userService.canAccessCart()) {
+      menuItems.add(
+        _buildDrawerItem(
+          context,
+          icon: Icons.shopping_cart,
+          title: 'Cart',
+          route: '/cart',
+        ),
+      );
+    }
+
+    if (userService.canAccessImpactTracker()) {
+      menuItems.add(
+        _buildDrawerItem(
+          context,
+          icon: Icons.eco,
+          title: 'Impact Tracker',
+          route: '/impact-tracker',
+        ),
+      );
+    }
+
+    // Common items for all users
+    menuItems.add(
+      _buildDrawerItem(
+        context,
+        icon: Icons.person,
+        title: 'Profile',
+        route: '/profile-settings',
+      ),
+    );
+
+    return menuItems;
+  }
+
   void _showAboutDialog(BuildContext context) {
     Navigator.pop(context); // Close drawer
     showDialog(
@@ -251,52 +324,6 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  void _showSettingsDialog(BuildContext context) {
-    Navigator.pop(context); // Close drawer
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Settings'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: Icon(Icons.language),
-                  title: Text('Language'),
-                  subtitle: Text('English'),
-                  onTap: () {
-                    // Language settings
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.notifications),
-                  title: Text('Notifications'),
-                  subtitle: Text('Enabled'),
-                  onTap: () {
-                    // Notification settings
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.dark_mode),
-                  title: Text('Dark Mode'),
-                  subtitle: Text('Light'),
-                  onTap: () {
-                    // Theme settings
-                  },
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Close'),
-              ),
-            ],
-          ),
-    );
-  }
-
   void _showLogoutDialog(BuildContext context) {
     Navigator.pop(context); // Close drawer
     showDialog(
@@ -313,6 +340,7 @@ class AppDrawer extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
+                  UserService().logout(); // Clear user data
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     '/login',
