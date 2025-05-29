@@ -110,6 +110,7 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView> {
                                   farmer.profileImageUrl != null
                                       ? NetworkImage(farmer.profileImageUrl!)
                                       : null,
+                              backgroundColor: AppColors.ricePaddyGreen,
                               child:
                                   farmer.profileImageUrl == null
                                       ? const Icon(
@@ -117,7 +118,6 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView> {
                                         color: Colors.white,
                                       )
                                       : null,
-                              backgroundColor: AppColors.ricePaddyGreen,
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -125,7 +125,7 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Welcome, ${farmer.name.split(' ').first}!',
+                                    'Welcome, ${farmer.name?.split(' ').first}!',
                                     style: theme.textTheme.titleLarge,
                                   ),
                                   Text(

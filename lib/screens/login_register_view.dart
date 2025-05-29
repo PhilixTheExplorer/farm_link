@@ -77,45 +77,68 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
               ? _loginPasswordController.text
               : _registerPasswordController.text;
 
-      bool success;
-
       if (_tabController.index == 0) {
-        // Login - auto-detect role from email
-        success = await UserService().login(email, password);
+        // Login
+        final result = await UserService().login(email, password);
+        setState(() => _isLoading = false);
+
+        if (result.isSuccess) {
+          // Navigate based on detected role
+          final userService = UserService();
+          final destination =
+              userService.currentUserRole == UserRole.farmer
+                  ? '/farmer-dashboard'
+                  : '/buyer-marketplace';
+
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            destination,
+            (route) => false,
+          );
+        } else {
+          _showErrorMessage(
+            result.errorMessage ??
+                'Login failed. Please check your credentials.',
+          );
+        }
       } else {
-        // Register - for now use same login method (in real app would be separate)
-        success = await UserService().login(email, password);
-        // Note: In real implementation, register would be a separate method
-      }
-
-      setState(() => _isLoading = false);
-
-      if (success) {
-        // Navigate based on detected role
-        final userService = UserService();
-        final destination =
-            userService.currentUserRole == UserRole.farmer
-                ? '/farmer-dashboard'
-                : '/buyer-marketplace';
-
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          destination,
-          (route) => false,
+        // Register - collect additional info
+        final result = await UserService().register(
+          email,
+          password,
+          _selectedRole.toLowerCase(),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _tabController.index == 0
-                  ? 'Login failed. Please check your credentials.'
-                  : 'Registration failed. Please try again.',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+        setState(() => _isLoading = false);
+
+        if (result.isSuccess) {
+          // Navigate based on selected role
+          final destination =
+              _selectedRole == 'Farmer'
+                  ? '/farmer-dashboard'
+                  : '/buyer-marketplace';
+
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            destination,
+            (route) => false,
+          );
+        } else {
+          _showErrorMessage(
+            result.errorMessage ?? 'Registration failed. Please try again.',
+          );
+        }
       }
     }
+  }
+
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   @override
@@ -155,7 +178,7 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
-                    height: 460,
+                    height: 380,
                     child: TabBarView(
                       controller: _tabController,
                       children: [

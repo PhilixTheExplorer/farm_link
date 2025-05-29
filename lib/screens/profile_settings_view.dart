@@ -32,47 +32,6 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
     );
   }
 
-  void _toggleUserRole() {
-    final userService = UserService();
-    final currentRole = userService.currentUserRole;
-    final newRole =
-        currentRole == UserRole.farmer ? UserRole.buyer : UserRole.farmer;
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Switch Role'),
-            content: Text(
-              'Switch from ${currentRole == UserRole.farmer ? 'Farmer' : 'Buyer'} to ${newRole == UserRole.farmer ? 'Farmer' : 'Buyer'}?\n\nThis will change your available features and navigation options.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  userService.switchUserRole(newRole);
-                  setState(() {}); // Refresh the UI
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Switched to ${newRole == UserRole.farmer ? 'Farmer' : 'Buyer'} mode',
-                      ),
-                      backgroundColor: AppColors.ricePaddyGreen,
-                    ),
-                  );
-                },
-                child: const Text('Switch'),
-              ),
-            ],
-          ),
-    );
-  }
-
   void _logout() {
     // Show confirmation dialog
     showDialog(
@@ -249,20 +208,6 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                         label: 'Farm Name',
                         value: _userService.farmerData!.farmName,
                       ),
-                      const Divider(height: 24),
-                      _buildInfoRow(
-                        context,
-                        icon: Icons.landscape_outlined,
-                        label: 'Farm Size',
-                        value: '${_userService.farmerData!.farmSize} acres',
-                      ),
-                      const Divider(height: 24),
-                      _buildInfoRow(
-                        context,
-                        icon: Icons.eco_outlined,
-                        label: 'Crops',
-                        value: _userService.farmerData!.cropTypes.join(', '),
-                      ),
                     ],
                   ),
                 ),
@@ -288,15 +233,6 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                         label: 'Total Spent',
                         value:
                             '฿${_userService.buyerData!.totalSpent.toStringAsFixed(2)}',
-                      ),
-                      const Divider(height: 24),
-                      _buildInfoRow(
-                        context,
-                        icon: Icons.favorite_outline,
-                        label: 'Dietary Preferences',
-                        value: _userService.buyerData!.dietaryPreferences.join(
-                          ', ',
-                        ),
                       ),
                     ],
                   ),
@@ -331,19 +267,6 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                     value: _isEnglish,
                     onChanged: (value) => _toggleLanguage(),
                     activeColor: AppColors.ricePaddyGreen,
-                  ),
-
-                  const Divider(height: 1),
-
-                  // Role Switcher (For Demo)
-                  ListTile(
-                    leading: const Icon(Icons.swap_horiz),
-                    title: const Text('Switch Role'),
-                    subtitle: Text(
-                      'Current: ${UserService().currentUserRole == UserRole.farmer ? 'Farmer' : 'Buyer'}',
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: _toggleUserRole,
                   ),
 
                   const Divider(height: 1),

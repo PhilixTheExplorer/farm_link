@@ -3,9 +3,9 @@ enum UserRole { farmer, buyer }
 class User {
   final String id;
   final String email;
-  final String name;
-  final String phone;
-  final String location;
+  final String? name;
+  final String? phone;
+  final String? location;
   final DateTime joinDate;
   final UserRole role;
   final String? profileImageUrl;
@@ -13,9 +13,9 @@ class User {
   User({
     required this.id,
     required this.email,
-    required this.name,
-    required this.phone,
-    required this.location,
+    this.name,
+    this.phone,
+    this.location,
     required this.joinDate,
     required this.role,
     this.profileImageUrl,
