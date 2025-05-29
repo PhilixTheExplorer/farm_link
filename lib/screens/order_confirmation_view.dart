@@ -3,7 +3,7 @@ import '../components/thai_button.dart';
 import '../theme/app_colors.dart';
 
 class OrderConfirmationView extends StatelessWidget {
-  const OrderConfirmationView({Key? key}) : super(key: key);
+  const OrderConfirmationView({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../components/farm_card.dart';
+import '../components/app_drawer.dart';
 import '../theme/app_colors.dart';
 
 class FarmerDashboardView extends StatelessWidget {
-  const FarmerDashboardView({Key? key}) : super(key: key);
+  const FarmerDashboardView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +48,7 @@ class FarmerDashboardView extends StatelessWidget {
     ];
 
     return Scaffold(
+      drawer: AppDrawer(currentRoute: '/farmer-dashboard'),
       appBar: AppBar(
         title: const Text('Farmer Dashboard'),
         actions: [

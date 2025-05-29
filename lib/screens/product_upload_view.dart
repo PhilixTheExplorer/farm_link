@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../components/thai_button.dart';
 import '../components/thai_text_field.dart';
 import '../theme/app_colors.dart';
 
 class ProductUploadView extends StatefulWidget {
-  const ProductUploadView({Key? key}) : super(key: key);
+  const ProductUploadView({super.key});
 
   @override
   State<ProductUploadView> createState() => _ProductUploadViewState();

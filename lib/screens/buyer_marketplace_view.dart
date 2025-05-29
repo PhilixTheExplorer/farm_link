@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../components/farm_card.dart';
+import '../components/app_drawer.dart';
 import '../theme/app_colors.dart';
 
 class BuyerMarketplaceView extends StatefulWidget {
@@ -110,6 +111,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
         }).toList();
 
     return Scaffold(
+      drawer: AppDrawer(currentRoute: '/buyer-marketplace'),
       appBar: AppBar(
         title: const Text('FarmLink Marketplace'),
         actions: [

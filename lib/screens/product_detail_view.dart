@@ -6,9 +6,9 @@ class ProductDetailView extends StatefulWidget {
   final Map<String, dynamic>? product;
 
   const ProductDetailView({
-    Key? key,
+    super.key,
     this.product,
-  }) : super(key: key);
+  });
 
   @override
   State<ProductDetailView> createState() => _ProductDetailViewState();

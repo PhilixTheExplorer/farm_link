@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../components/app_drawer.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -28,10 +29,16 @@ class _HomeViewState extends State<HomeView> {
       'description': 'Get fresh products directly from local farmers.',
     },
   ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: AppDrawer(currentRoute: '/home'),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+      ),
+      extendBodyBehindAppBar: true,
       body: Stack(
         children: [
           // Background Image
@@ -58,15 +65,9 @@ class _HomeViewState extends State<HomeView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 300), // Placeholder for spacing
-                        Text(
-                          data['title']!,
-                          textAlign: TextAlign.center,
-                        ),
+                        Text(data['title']!, textAlign: TextAlign.center),
                         const SizedBox(height: 16),
-                        Text(
-                          data['description']!,
-                          textAlign: TextAlign.center,
-                        ),
+                        Text(data['description']!, textAlign: TextAlign.center),
                       ],
                     );
                   },
@@ -76,15 +77,16 @@ class _HomeViewState extends State<HomeView> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
                   _onboardingData.length,
-                      (index) => Container(
+                  (index) => Container(
                     margin: const EdgeInsets.symmetric(horizontal: 4),
                     width: 8,
                     height: 8,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _currentPage == index
-                          ? Colors.blue
-                          : Colors.grey.withOpacity(0.5),
+                      color:
+                          _currentPage == index
+                              ? Colors.blue
+                              : Colors.grey.withOpacity(0.5),
                     ),
                   ),
                 ),

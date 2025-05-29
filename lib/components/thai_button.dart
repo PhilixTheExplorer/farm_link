@@ -16,14 +16,14 @@ class ThaiButton extends StatelessWidget {
   final bool isFullWidth;
 
   const ThaiButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onPressed,
     this.variant = ThaiButtonVariant.primary,
     this.icon,
     this.isLoading = false,
     this.isFullWidth = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -37,7 +37,7 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.bambooCream,
         elevation: 0,
-        centerTitle: false,
+        centerTitle: true,
         titleTextStyle: AppTypography.sarabunTextTheme.titleLarge?.copyWith(
           color: Colors.black, // Ensure title text style is also black
         ),

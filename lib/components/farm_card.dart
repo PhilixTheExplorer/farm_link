@@ -13,7 +13,7 @@ class FarmCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const FarmCard({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.title,
     required this.price,
@@ -23,7 +23,7 @@ class FarmCard extends StatelessWidget {
     this.unit,
     this.showDescription = true,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

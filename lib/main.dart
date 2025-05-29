@@ -2,6 +2,7 @@ import 'package:farm_link/screens/connect_test_view.dart';
 import 'package:farm_link/screens/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'core/navigation_service.dart';
 import 'theme/app_theme.dart';
 import 'screens/login_register_view.dart';
 import 'screens/farmer_dashboard_view.dart';
@@ -36,7 +37,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
       title: 'FarmLink',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
+      navigatorKey: NavigationService.navigatorKey,
       initialRoute: '/buyer-marketplace',
       routes: {
         '/connect-test': (context) => ConnectTestView(),

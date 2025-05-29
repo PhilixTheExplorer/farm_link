@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../components/thai_button.dart';
+import '../components/app_drawer.dart';
 import '../theme/app_colors.dart';
 
 class ProfileSettingsView extends StatefulWidget {
-  const ProfileSettingsView({Key? key}) : super(key: key);
+  const ProfileSettingsView({super.key});
 
   @override
   State<ProfileSettingsView> createState() => _ProfileSettingsViewState();
@@ -11,7 +12,7 @@ class ProfileSettingsView extends StatefulWidget {
 
 class _ProfileSettingsViewState extends State<ProfileSettingsView> {
   bool _isEnglish = true;
-  
+
   // Sample user data
   final Map<String, dynamic> _userData = {
     'email': 'user@example.com',
@@ -21,7 +22,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
     'location': 'Bangkok',
     'joinDate': 'May 2023',
   };
-  
+
   // Sample orders
   final List<Map<String, dynamic>> _orders = [
     {
@@ -48,11 +49,13 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
     setState(() {
       _isEnglish = !_isEnglish;
     });
-    
+
     // Show language change notification
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_isEnglish ? 'Language set to English' : 'ภาษาถูกตั้งเป็นภาษาไทย'),
+        content: Text(
+          _isEnglish ? 'Language set to English' : 'ภาษาถูกตั้งเป็นภาษาไทย',
+        ),
         backgroundColor: AppColors.ricePaddyGreen,
       ),
     );
@@ -62,46 +65,42 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
     // Show confirmation dialog
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Logout'),
+            content: const Text('Are you sure you want to logout?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  // Navigate to login screen
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/login',
+                    (route) => false,
+                  );
+                },
+                child: const Text('Logout'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.chilliRed,
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Navigate to login screen
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/login',
-                (route) => false,
-              );
-            },
-            child: const Text('Logout'),
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.chilliRed,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile & Settings'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      drawer: AppDrawer(currentRoute: '/profile-settings'),
+      appBar: AppBar(title: const Text('Profile & Settings')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -113,7 +112,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 children: [
                   const CircleAvatar(
                     radius: 50,
-                    backgroundImage: NetworkImage('https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80'),
+                    backgroundImage: NetworkImage(
+                      'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80',
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -133,9 +134,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Account Information
             Text(
               'Account Information',
@@ -180,9 +181,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // My Orders
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -205,7 +206,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Order List
             ListView.builder(
               shrinkWrap: true,
@@ -213,7 +214,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
               itemCount: _orders.length,
               itemBuilder: (context, index) {
                 final order = _orders[index];
-                
+
                 return Card(
                   margin: const EdgeInsets.only(bottom: 16),
                   child: ListTile(
@@ -248,9 +249,14 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                               style: theme.textTheme.bodyMedium,
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
-                                color: AppColors.ricePaddyGreen.withOpacity(0.2),
+                                color: AppColors.ricePaddyGreen.withOpacity(
+                                  0.2,
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -272,9 +278,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 );
               },
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Settings
             Text(
               'Settings',
@@ -295,9 +301,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                     onChanged: (value) => _toggleLanguage(),
                     activeColor: AppColors.ricePaddyGreen,
                   ),
-                  
+
                   const Divider(height: 1),
-                  
+
                   // Notifications
                   ListTile(
                     leading: const Icon(Icons.notifications_outlined),
@@ -307,9 +313,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       // Navigate to notification settings
                     },
                   ),
-                  
+
                   const Divider(height: 1),
-                  
+
                   // Privacy Policy
                   ListTile(
                     leading: const Icon(Icons.privacy_tip_outlined),
@@ -319,9 +325,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       // Show privacy policy
                     },
                   ),
-                  
+
                   const Divider(height: 1),
-                  
+
                   // Terms of Service
                   ListTile(
                     leading: const Icon(Icons.description_outlined),
@@ -331,9 +337,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       // Show terms of service
                     },
                   ),
-                  
+
                   const Divider(height: 1),
-                  
+
                   // About
                   ListTile(
                     leading: const Icon(Icons.info_outline),
@@ -346,9 +352,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Logout Button
             ThaiButton(
               label: 'Logout',
@@ -357,9 +363,9 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
               icon: Icons.logout,
               isFullWidth: true,
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // App Version
             Center(
               child: Text(
@@ -382,14 +388,10 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
     required String value,
   }) {
     final theme = Theme.of(context);
-    
+
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: AppColors.palmAshGray,
-        ),
+        Icon(icon, size: 20, color: AppColors.palmAshGray),
         const SizedBox(width: 16),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,10 +402,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 color: AppColors.palmAshGray,
               ),
             ),
-            Text(
-              value,
-              style: theme.textTheme.bodyLarge,
-            ),
+            Text(value, style: theme.textTheme.bodyLarge),
           ],
         ),
       ],
