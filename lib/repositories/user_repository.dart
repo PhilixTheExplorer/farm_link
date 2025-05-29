@@ -10,8 +10,8 @@ class UserRepository {
   static final List<Farmer> _sampleFarmers = [
     Farmer(
       id: 'farmer_001',
-      email: 'somchai@farmlink.th',
-      name: 'Somchai Jaidee',
+      email: 'philix@farmlink.th',
+      name: 'Philix Hein',
       phone: '+66 81 234 5678',
       location: 'Chiang Mai',
       joinDate: DateTime(2023, 3, 15),
@@ -20,7 +20,8 @@ class UserRepository {
       cropTypes: ['Rice', 'Vegetables', 'Herbs'],
       farmingMethod: 'Organic',
       rating: 4.8,
-      totalSales: 127,
+      totalSales:
+          53, // Total number of individual orders (sum of all product order counts)
       isVerified: true,
       certifications: 'Organic Thailand Certification',
       profileImageUrl:
@@ -28,8 +29,8 @@ class UserRepository {
     ),
     Farmer(
       id: 'farmer_002',
-      email: 'malee@farmlink.th',
-      name: 'Malee Suwan',
+      email: 'ame@farmlink.th',
+      name: 'Ame Siri',
       phone: '+66 82 345 6789',
       location: 'Nakhon Pathom',
       joinDate: DateTime(2023, 5, 20),
@@ -38,7 +39,8 @@ class UserRepository {
       cropTypes: ['Lettuce', 'Spinach', 'Kale', 'Tomatoes'],
       farmingMethod: 'Hydroponic',
       rating: 4.6,
-      totalSales: 89,
+      totalSales:
+          91, // Total number of individual orders (sum of all product order counts)
       isVerified: true,
       certifications: 'GAP Certification',
       profileImageUrl: null, // This user will show the default avatar
@@ -47,8 +49,8 @@ class UserRepository {
   static final List<Buyer> _sampleBuyers = [
     Buyer(
       id: 'buyer_001',
-      email: 'john.doe@email.com',
-      name: 'John Doe',
+      email: 'emma@email.com',
+      name: 'Emma',
       phone: '+66 91 234 5678',
       location: 'Bangkok',
       joinDate: DateTime(2023, 4, 10),
@@ -64,8 +66,8 @@ class UserRepository {
     ),
     Buyer(
       id: 'buyer_002',
-      email: 'sara.smith@email.com',
-      name: 'Sara Smith',
+      email: 'farm@email.com',
+      name: 'Linky Linky',
       phone: '+66 92 345 6789',
       location: 'Bangkok',
       joinDate: DateTime(2023, 6, 5),
@@ -167,7 +169,7 @@ class UserRepository {
   // Switch user role (for demo purposes)
   void switchUserRole(UserRole newRole) {
     if (newRole == UserRole.farmer) {
-      _currentUser = _sampleFarmers.last;
+      _currentUser = _sampleFarmers.first;
     } else {
       _currentUser = _sampleBuyers.first;
     }
