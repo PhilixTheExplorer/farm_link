@@ -55,10 +55,10 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                     (route) => false,
                   );
                 },
-                child: const Text('Logout'),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.chilliRed,
                 ),
+                child: const Text('Logout'),
               ),
             ],
           ),
@@ -89,11 +89,11 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                               _userService.currentUser!.profileImageUrl!,
                             )
                             : null,
+                    backgroundColor: AppColors.ricePaddyGreen,
                     child:
                         _userService.currentUser?.profileImageUrl == null
                             ? Icon(Icons.person, size: 50, color: Colors.white)
                             : null,
-                    backgroundColor: AppColors.ricePaddyGreen,
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -184,10 +184,10 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                   onPressed: () {
                     // Navigate to detailed view
                   },
-                  child: const Text('View All'),
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.tamarindBrown,
                   ),
+                  child: const Text('View All'),
                 ),
               ],
             ),
@@ -206,7 +206,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                         context,
                         icon: Icons.agriculture_outlined,
                         label: 'Farm Name',
-                        value: _userService.farmerData!.farmName,
+                        value: _userService.farmerData?.farmName ?? 'Not set',
                       ),
                     ],
                   ),

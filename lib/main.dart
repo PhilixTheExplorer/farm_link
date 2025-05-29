@@ -48,7 +48,6 @@ class MyApp extends StatelessWidget {
       navigatorKey: NavigationService.navigatorKey,
       initialRoute: '/login',
       routes: {
-        '/connect-test': (context) => ConnectTestView(),
         '/home': (context) => const HomeView(),
         '/login': (context) => const LoginRegisterView(),
         '/farmer-dashboard': (context) => const FarmerDashboardView(),
