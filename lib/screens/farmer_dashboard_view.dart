@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../components/farm_card.dart';
-import '../components/thai_button.dart';
 import '../theme/app_colors.dart';
 
 class FarmerDashboardView extends StatelessWidget {
@@ -20,6 +19,8 @@ class FarmerDashboardView extends StatelessWidget {
         'description':
             'Freshly harvested jasmine rice from our farm in Chiang Mai.',
         'category': 'Rice',
+        'quantity': '5',
+        'unit': 'kg',
       },
       {
         'imageUrl':
@@ -29,6 +30,8 @@ class FarmerDashboardView extends StatelessWidget {
         'description':
             'Sweet and juicy mangoes, perfect for desserts or eating fresh.',
         'category': 'Fruits',
+        'quantity': '10',
+        'unit': 'pcs',
       },
       {
         'imageUrl':
@@ -38,6 +41,8 @@ class FarmerDashboardView extends StatelessWidget {
         'description':
             'Traditional Thai bamboo basket, handcrafted by local artisans.',
         'category': 'Handmade',
+        'quantity': '3',
+        'unit': 'pcs',
       },
     ];
 
@@ -169,6 +174,8 @@ class FarmerDashboardView extends StatelessWidget {
                             price: product['price']!,
                             description: product['description']!,
                             category: product['category']!,
+                            quantity: product['quantity'],
+                            unit: product['unit'],
                             onTap: () {
                               // Navigate to product detail/edit
                             },

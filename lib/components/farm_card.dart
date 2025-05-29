@@ -7,6 +7,8 @@ class FarmCard extends StatelessWidget {
   final String price;
   final String description;
   final String category;
+  final String? quantity;
+  final String? unit;
   final VoidCallback onTap;
 
   const FarmCard({
@@ -16,13 +18,15 @@ class FarmCard extends StatelessWidget {
     required this.price,
     required this.description,
     required this.category,
+    this.quantity,
+    this.unit,
     required this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -46,7 +50,7 @@ class FarmCard extends StatelessWidget {
                 },
               ),
             ),
-            
+
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -63,9 +67,9 @@ class FarmCard extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  
+
                   const SizedBox(height: 8),
-                  
+
                   // Title
                   Text(
                     title,
@@ -75,20 +79,49 @@ class FarmCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  
+
                   const SizedBox(height: 4),
-                  
-                  // Price
-                  Text(
-                    '฿$price',
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: AppColors.tamarindBrown,
-                      fontWeight: FontWeight.bold,
-                    ),
+
+                  // Price and quantity
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          '฿$price',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: AppColors.tamarindBrown,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      if (quantity != null && unit != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.tamarindBrown.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.tamarindBrown.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Text(
+                            '$quantity $unit',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.tamarindBrown,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  
+
                   const SizedBox(height: 8),
-                  
+
                   // Description
                   Text(
                     description,

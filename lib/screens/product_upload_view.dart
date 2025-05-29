@@ -13,16 +13,17 @@ class ProductUploadView extends StatefulWidget {
 
 class _ProductUploadViewState extends State<ProductUploadView> {
   final _formKey = GlobalKey<FormState>();
-  
+
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _quantityController = TextEditingController();
-  
+
   String _selectedCategory = 'Vegetables';
+  String _selectedQuantityUnit = 'pcs';
   bool _isLoading = false;
   String? _imageUrl;
-  
+
   // Sample categories
   final List<String> _categories = [
     'Vegetables',
@@ -30,6 +31,19 @@ class _ProductUploadViewState extends State<ProductUploadView> {
     'Rice',
     'Handmade',
     'Organic',
+  ];
+
+  // Quantity units
+  final List<String> _quantityUnits = [
+    'kg',
+    'g',
+    'pcs',
+    'pack',
+    'bag',
+    'box',
+    'bottle',
+    'bunch',
+    'dozen',
   ];
 
   @override
@@ -44,7 +58,8 @@ class _ProductUploadViewState extends State<ProductUploadView> {
   void _pickImage() {
     // Simulate image picking
     setState(() {
-      _imageUrl = 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80';
+      _imageUrl =
+          'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80';
     });
   }
 
@@ -56,25 +71,29 @@ class _ProductUploadViewState extends State<ProductUploadView> {
         );
         return;
       }
-      
+
       setState(() {
         _isLoading = true;
       });
-      
+
       // Simulate API call
       Future.delayed(const Duration(seconds: 2), () {
         setState(() {
           _isLoading = false;
         });
-        
-        // Show success message
+
+        // Show success message with product details
+        final quantity = _quantityController.text;
+        final unit = _selectedQuantityUnit;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Product uploaded successfully!'),
+          SnackBar(
+            content: Text(
+              'Product uploaded successfully! Quantity: $quantity $unit',
+            ),
             backgroundColor: AppColors.ricePaddyGreen,
           ),
         );
-        
+
         // Navigate back to farmer dashboard
         Navigator.pop(context);
       });
@@ -84,7 +103,7 @@ class _ProductUploadViewState extends State<ProductUploadView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add New Product'),
@@ -113,38 +132,40 @@ class _ProductUploadViewState extends State<ProductUploadView> {
                       border: Border.all(
                         color: AppColors.palmAshGray.withOpacity(0.3),
                       ),
-                      image: _imageUrl != null
-                          ? DecorationImage(
-                              image: NetworkImage(_imageUrl!),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
+                      image:
+                          _imageUrl != null
+                              ? DecorationImage(
+                                image: NetworkImage(_imageUrl!),
+                                fit: BoxFit.cover,
+                              )
+                              : null,
                     ),
-                    child: _imageUrl == null
-                        ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.add_photo_alternate_outlined,
-                                size: 48,
-                                color: AppColors.palmAshGray,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Tap to add product image',
-                                style: theme.textTheme.bodyMedium?.copyWith(
+                    child:
+                        _imageUrl == null
+                            ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.add_photo_alternate_outlined,
+                                  size: 48,
                                   color: AppColors.palmAshGray,
                                 ),
-                              ),
-                            ],
-                          )
-                        : null,
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Tap to add product image',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.palmAshGray,
+                                  ),
+                                ),
+                              ],
+                            )
+                            : null,
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Product Name
               ThaiTextField(
                 label: 'Product Name',
@@ -157,9 +178,9 @@ class _ProductUploadViewState extends State<ProductUploadView> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Price
               ThaiTextField(
                 label: 'Price (THB)',
@@ -177,29 +198,111 @@ class _ProductUploadViewState extends State<ProductUploadView> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 16),
-              
-              // Quantity
-              ThaiTextField(
-                label: 'Quantity Available',
-                hintText: 'Enter available quantity',
-                controller: _quantityController,
-                keyboardType: TextInputType.number,
-                prefixIcon: Icons.inventory_2_outlined,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter quantity';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
-                  return null;
-                },
+
+              // Quantity with Unit
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8),
+                    child: Text(
+                      'Quantity Available',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      // Quantity input field
+                      Expanded(
+                        flex: 3,
+                        child: TextFormField(
+                          controller: _quantityController,
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter quantity';
+                            }
+                            if (double.tryParse(value) == null) {
+                              return 'Please enter a valid number';
+                            }
+                            return null;
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Enter quantity',
+                            prefixIcon: const Icon(
+                              Icons.inventory_2_outlined,
+                              color: AppColors.palmAshGray,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: AppColors.bambooCream,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 16,
+                            ),
+                            errorStyle: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.error,
+                            ),
+                          ),
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // Unit dropdown
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: AppColors.bambooCream,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: AppColors.palmAshGray.withOpacity(0.3),
+                            ),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedQuantityUnit,
+                              isExpanded: true,
+                              icon: const Icon(Icons.arrow_drop_down),
+                              elevation: 16,
+                              style: theme.textTheme.bodyMedium,
+                              onChanged: (String? value) {
+                                if (value != null) {
+                                  setState(() {
+                                    _selectedQuantityUnit = value;
+                                  });
+                                }
+                              },
+                              items:
+                                  _quantityUnits.map<DropdownMenuItem<String>>((
+                                    String value,
+                                  ) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Category Dropdown
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,20 +339,23 @@ class _ProductUploadViewState extends State<ProductUploadView> {
                             });
                           }
                         },
-                        items: _categories.map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
+                        items:
+                            _categories.map<DropdownMenuItem<String>>((
+                              String value,
+                            ) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
                       ),
                     ),
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Description
               ThaiTextField(
                 label: 'Description',
@@ -263,9 +369,9 @@ class _ProductUploadViewState extends State<ProductUploadView> {
                   return null;
                 },
               ),
-              
+
               const SizedBox(height: 32),
-              
+
               // Submit Button
               ThaiButton(
                 label: 'Upload Product',
