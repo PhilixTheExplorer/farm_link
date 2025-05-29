@@ -9,7 +9,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      
+
       // Color Scheme
       colorScheme: ColorScheme(
         brightness: Brightness.light,
@@ -29,20 +29,20 @@ class AppTheme {
         onSurfaceVariant: AppColors.palmAshGray,
         outline: AppColors.palmAshGray.withOpacity(0.5),
       ),
-      
+
       // Typography
       textTheme: AppTypography.textTheme,
-      
+
       // Component Themes
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.bambooCream,
-        foregroundColor: AppColors.charcoalBlack,
         elevation: 0,
         centerTitle: false,
         titleTextStyle: AppTypography.sarabunTextTheme.titleLarge?.copyWith(
           color: Colors.black, // Ensure title text style is also black
-        ),      ),
-      
+        ),
+      ),
+
       // Card Theme
       cardTheme: CardTheme(
         color: AppColors.bambooCream,
@@ -52,7 +52,7 @@ class AppTheme {
         ),
         margin: const EdgeInsets.all(8.0),
       ),
-      
+
       // Button Themes
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -66,7 +66,7 @@ class AppTheme {
           textStyle: AppTypography.sarabunTextTheme.labelLarge,
         ),
       ),
-      
+
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.tamarindBrown,
@@ -78,7 +78,7 @@ class AppTheme {
           textStyle: AppTypography.sarabunTextTheme.labelLarge,
         ),
       ),
-      
+
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.tamarindBrown,
@@ -89,12 +89,15 @@ class AppTheme {
           textStyle: AppTypography.sarabunTextTheme.labelLarge,
         ),
       ),
-      
+
       // Input Decoration
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.bambooCream,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.0),
           borderSide: BorderSide.none,
@@ -105,7 +108,10 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.0),
-          borderSide: const BorderSide(color: AppColors.ricePaddyGreen, width: 2),
+          borderSide: const BorderSide(
+            color: AppColors.ricePaddyGreen,
+            width: 2,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.0),
@@ -122,7 +128,7 @@ class AppTheme {
           color: AppColors.palmAshGray.withOpacity(0.7),
         ),
       ),
-      
+
       // Chip Theme
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.bambooCream,
@@ -141,7 +147,7 @@ class AppTheme {
           side: BorderSide(color: AppColors.palmAshGray.withOpacity(0.3)),
         ),
       ),
-      
+
       // Tab Bar Theme
       tabBarTheme: TabBarTheme(
         labelColor: AppColors.ricePaddyGreen,
@@ -150,21 +156,21 @@ class AppTheme {
         labelStyle: AppTypography.sarabunTextTheme.labelLarge,
         unselectedLabelStyle: AppTypography.sarabunTextTheme.labelLarge,
       ),
-      
+
       // Floating Action Button
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: AppColors.bambooCream,
         foregroundColor: AppColors.chilliRed,
         shape: const CircleBorder(),
       ),
-      
+
       // Divider
       dividerTheme: DividerThemeData(
         color: AppColors.palmAshGray.withOpacity(0.2),
         thickness: 1,
         space: 24,
       ),
-      
+
       // Scaffold Background
       scaffoldBackgroundColor: AppColors.jasmineBeige,
     );

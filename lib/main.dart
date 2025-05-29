@@ -15,13 +15,13 @@ import 'screens/profile_settings_view.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Set preferred orientations
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -31,7 +31,7 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  
+
   runApp(const MyApp());
 }
 
@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       title: 'FarmLink',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
-      initialRoute: '/login',
+      initialRoute: '/farmer-dashboard',
       routes: {
         '/connect-test': (context) => ConnectTestView(),
         '/home': (context) => const HomeView(),

@@ -9,28 +9,34 @@ class FarmerDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Sample product data
     final products = [
       {
-        'imageUrl': 'https://images.unsplash.com/photo-1603833665858-e61d17a86224?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+        'imageUrl':
+            'https://images.unsplash.com/photo-1603833665858-e61d17a86224?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
         'title': 'Organic Rice',
         'price': '120',
-        'description': 'Freshly harvested jasmine rice from our farm in Chiang Mai.',
+        'description':
+            'Freshly harvested jasmine rice from our farm in Chiang Mai.',
         'category': 'Rice',
       },
       {
-        'imageUrl': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+        'imageUrl':
+            'https://images.unsplash.com/photo-1518977676601-b53f82aba655?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
         'title': 'Fresh Mangoes',
         'price': '80',
-        'description': 'Sweet and juicy mangoes, perfect for desserts or eating fresh.',
+        'description':
+            'Sweet and juicy mangoes, perfect for desserts or eating fresh.',
         'category': 'Fruits',
       },
       {
-        'imageUrl': 'https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+        'imageUrl':
+            'https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
         'title': 'Handmade Basket',
         'price': '250',
-        'description': 'Traditional Thai bamboo basket, handcrafted by local artisans.',
+        'description':
+            'Traditional Thai bamboo basket, handcrafted by local artisans.',
         'category': 'Handmade',
       },
     ];
@@ -43,6 +49,7 @@ class FarmerDashboardView extends StatelessWidget {
             icon: const Icon(Icons.person_outline),
             onPressed: () {
               // Navigate to profile
+              Navigator.pushNamed(context, '/profile-settings');
             },
           ),
         ],
@@ -66,7 +73,9 @@ class FarmerDashboardView extends StatelessWidget {
               children: [
                 const CircleAvatar(
                   radius: 24,
-                  backgroundImage: NetworkImage('https://images.unsplash.com/photo-1520466809213-7b9a56adcd45?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80'),
+                  backgroundImage: NetworkImage(
+                    'https://images.unsplash.com/photo-1520466809213-7b9a56adcd45?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80',
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -86,18 +95,10 @@ class FarmerDashboardView extends StatelessWidget {
                     ],
                   ),
                 ),
-                ThaiButton(
-                  label: 'Sales',
-                  onPressed: () {
-                    // Navigate to sales summary
-                  },
-                  variant: ThaiButtonVariant.secondary,
-                  icon: Icons.bar_chart,
-                ),
               ],
             ),
           ),
-          
+
           // Products Section
           Padding(
             padding: const EdgeInsets.all(16),
@@ -123,63 +124,65 @@ class FarmerDashboardView extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Product List
           Expanded(
-            child: products.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.inventory_2_outlined,
-                          size: 64,
-                          color: AppColors.palmAshGray,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No products yet',
-                          style: theme.textTheme.titleMedium?.copyWith(
+            child:
+                products.isEmpty
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.inventory_2_outlined,
+                            size: 64,
                             color: AppColors.palmAshGray,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Add your first product by clicking the + button',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.palmAshGray,
+                          const SizedBox(height: 16),
+                          Text(
+                            'No products yet',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: AppColors.palmAshGray,
+                            ),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            'Add your first product by clicking the + button',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.palmAshGray,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                    : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: products.length,
+                      itemBuilder: (context, index) {
+                        final product = products[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: FarmCard(
+                            imageUrl: product['imageUrl']!,
+                            title: product['title']!,
+                            price: product['price']!,
+                            description: product['description']!,
+                            category: product['category']!,
+                            onTap: () {
+                              // Navigate to product detail/edit
+                            },
+                          ),
+                        );
+                      },
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: products.length,
-                    itemBuilder: (context, index) {
-                      final product = products[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: FarmCard(
-                          imageUrl: product['imageUrl']!,
-                          title: product['title']!,
-                          price: product['price']!,
-                          description: product['description']!,
-                          category: product['category']!,
-                          onTap: () {
-                            // Navigate to product detail/edit
-                          },
-                        ),
-                      );
-                    },
-                  ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Navigate to product upload
+          Navigator.pushNamed(context, '/product-upload');
         },
         backgroundColor: AppColors.bambooCream,
         child: const Icon(Icons.add, color: AppColors.chilliRed),
