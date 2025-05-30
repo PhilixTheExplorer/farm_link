@@ -1,4 +1,3 @@
-import 'package:farm_link/screens/connect_test_view.dart';
 import 'package:farm_link/screens/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
