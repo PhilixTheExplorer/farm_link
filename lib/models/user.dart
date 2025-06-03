@@ -6,7 +6,6 @@ class User {
   final String? name;
   final String? phone;
   final String? location;
-  final DateTime joinDate;
   final UserRole role;
   final String? profileImageUrl;
 
@@ -16,7 +15,6 @@ class User {
     this.name,
     this.phone,
     this.location,
-    required this.joinDate,
     required this.role,
     this.profileImageUrl,
   });
@@ -28,7 +26,6 @@ class User {
       name: json['name'],
       phone: json['phone'],
       location: json['location'],
-      joinDate: DateTime.parse(json['joinDate']),
       role: UserRole.values.firstWhere(
         (e) => e.toString().split('.').last == json['role'],
       ),
@@ -43,7 +40,6 @@ class User {
       'name': name,
       'phone': phone,
       'location': location,
-      'joinDate': joinDate.toIso8601String(),
       'role': role.toString().split('.').last,
       'profileImageUrl': profileImageUrl,
     };
@@ -55,7 +51,6 @@ class User {
     String? name,
     String? phone,
     String? location,
-    DateTime? joinDate,
     UserRole? role,
     String? profileImageUrl,
   }) {
@@ -65,7 +60,6 @@ class User {
       name: name ?? this.name,
       phone: phone ?? this.phone,
       location: location ?? this.location,
-      joinDate: joinDate ?? this.joinDate,
       role: role ?? this.role,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
     );

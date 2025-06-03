@@ -151,16 +151,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       label: 'Location',
                       value: _userService.currentUser?.location ?? 'Not set',
                     ),
-                    const Divider(height: 24),
-                    _buildInfoRow(
-                      context,
-                      icon: Icons.calendar_today_outlined,
-                      label: 'Joined',
-                      value:
-                          _userService.currentUser?.joinDate != null
-                              ? '${_userService.currentUser!.joinDate.month}/${_userService.currentUser!.joinDate.year}'
-                              : 'Unknown',
-                    ),
+                    const Divider(height: 24),                
                   ],
                 ),
               ),
