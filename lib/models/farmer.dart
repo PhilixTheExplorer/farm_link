@@ -3,8 +3,11 @@ import 'user.dart';
 class Farmer extends User {
   final String? farmName;
   final String? farmAddress;
+  final String? description;
   final int totalSales;
   final bool isVerified;
+  final double? averageRating;
+  final int? totalProducts;
 
   Farmer({
     required super.id,
@@ -13,10 +16,15 @@ class Farmer extends User {
     required super.phone,
     required super.location,
     super.profileImageUrl,
+    super.createdAt,
+    super.updatedAt,
     this.farmName,
     this.farmAddress,
+    this.description,
     this.totalSales = 0,
     this.isVerified = false,
+    this.averageRating,
+    this.totalProducts,
   }) : super(role: UserRole.farmer);
 
   factory Farmer.fromJson(Map<String, dynamic> json) {
@@ -26,21 +34,36 @@ class Farmer extends User {
       name: json['name'],
       phone: json['phone'],
       location: json['location'],
-      profileImageUrl: json['profileImageUrl'],
-      farmName: json['farmName'] ?? '',
-      farmAddress: json['farmAddress'] ?? '',
-      totalSales: json['totalSales'] ?? 0,
-      isVerified: json['isVerified'] ?? false,
+      profileImageUrl: json['profile_image_url'] ?? json['profileImageUrl'],
+      createdAt:
+          json['created_at'] != null
+              ? DateTime.parse(json['created_at'])
+              : null,
+      updatedAt:
+          json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'])
+              : null,
+      farmName: json['farm_name'] ?? json['farmName'],
+      farmAddress: json['farm_address'] ?? json['farmAddress'],
+      description: json['description'],
+      totalSales: json['total_sales'] ?? json['totalSales'] ?? 0,
+      isVerified: json['is_verified'] ?? json['isVerified'] ?? false,
+      averageRating: json['average_rating']?.toDouble(),
+      totalProducts: json['total_products'],
     );
   }
+
   @override
   Map<String, dynamic> toJson() {
     final json = super.toJson();
     json.addAll({
-      'farmName': farmName,
-      'farmAddress': farmAddress,
-      'totalSales': totalSales,
-      'isVerified': isVerified,
+      'farm_name': farmName,
+      'farm_address': farmAddress,
+      'description': description,
+      'total_sales': totalSales,
+      'is_verified': isVerified,
+      if (averageRating != null) 'average_rating': averageRating,
+      if (totalProducts != null) 'total_products': totalProducts,
     });
     return json;
   }
@@ -54,10 +77,15 @@ class Farmer extends User {
     String? location,
     UserRole? role,
     String? profileImageUrl,
+    DateTime? createdAt,
+    DateTime? updatedAt,
     String? farmName,
     String? farmAddress,
+    String? description,
     int? totalSales,
     bool? isVerified,
+    double? averageRating,
+    int? totalProducts,
   }) {
     return Farmer(
       id: id ?? this.id,
@@ -66,12 +94,25 @@ class Farmer extends User {
       phone: phone ?? this.phone,
       location: location ?? this.location,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
       farmName: farmName ?? this.farmName,
       farmAddress: farmAddress ?? this.farmAddress,
+      description: description ?? this.description,
       totalSales: totalSales ?? this.totalSales,
       isVerified: isVerified ?? this.isVerified,
+      averageRating: averageRating ?? this.averageRating,
+      totalProducts: totalProducts ?? this.totalProducts,
     );
   }
+
+  // Helper getters
+  String get displayFarmName => farmName ?? 'Farm';
+  String get ratingDisplay =>
+      averageRating != null
+          ? '${averageRating!.toStringAsFixed(1)}⭐'
+          : 'No rating';
+  String get verificationStatus => isVerified ? 'Verified' : 'Unverified';
 
   @override
   String toString() {

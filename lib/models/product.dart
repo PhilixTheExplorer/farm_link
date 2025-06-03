@@ -47,56 +47,104 @@ class Product {
     this.rating = 0.0,
     this.reviewCount = 0,
   });
-
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'],
-      farmerId: json['farmerId'],
-      title: json['title'],
+      farmerId: json['farmer_id'] ?? json['farmerId'], // Support both formats
+      title: json['title'] ?? json['name'], // Support both formats
       description: json['description'],
-      price: json['price'].toDouble(),
-      category: ProductCategory.values.firstWhere(
-        (c) => c.toString().split('.').last == json['category'],
-        orElse: () => ProductCategory.other,
-      ),
-      quantity: json['quantity'],
-      unit: json['unit'],
-      imageUrl: json['imageUrl'],
-      status: ProductStatus.values.firstWhere(
-        (s) => s.toString().split('.').last == json['status'],
-        orElse: () => ProductStatus.available,
-      ),
-      createdDate: DateTime.parse(json['createdDate']),
+      price: (json['price'] ?? 0).toDouble(),
+      category: _parseCategoryFromString(json['category']),
+      quantity: json['quantity'] ?? 0,
+      unit: json['unit'] ?? 'pcs',
+      imageUrl: json['image_url'] ?? json['imageUrl'] ?? '',
+      status: _parseStatusFromString(json['status']),
+      createdDate: DateTime.parse(json['created_at'] ?? json['createdDate']),
       lastUpdated:
-          json['lastUpdated'] != null
-              ? DateTime.parse(json['lastUpdated'])
-              : null,
-      isOrganic: json['isOrganic'] ?? false,
-      orderCount: json['orderCount'] ?? 0,
-      rating: json['rating']?.toDouble() ?? 0.0,
-      reviewCount: json['reviewCount'] ?? 0,
+          json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'])
+              : (json['lastUpdated'] != null
+                  ? DateTime.parse(json['lastUpdated'])
+                  : null),
+      isOrganic: json['is_organic'] ?? json['isOrganic'] ?? false,
+      orderCount: json['order_count'] ?? json['orderCount'] ?? 0,
+      rating: (json['rating'] ?? 0).toDouble(),
+      reviewCount: json['review_count'] ?? json['reviewCount'] ?? 0,
     );
+  }
+
+  // Helper method to parse category from string
+  static ProductCategory _parseCategoryFromString(String? category) {
+    if (category == null) return ProductCategory.other;
+
+    switch (category.toLowerCase()) {
+      case 'rice':
+        return ProductCategory.rice;
+      case 'fruits':
+        return ProductCategory.fruits;
+      case 'vegetables':
+        return ProductCategory.vegetables;
+      case 'herbs':
+        return ProductCategory.herbs;
+      case 'handmade':
+        return ProductCategory.handmade;
+      case 'dairy':
+        return ProductCategory.dairy;
+      case 'meat':
+        return ProductCategory.meat;
+      default:
+        return ProductCategory.other;
+    }
+  }
+
+  // Helper method to parse status from string
+  static ProductStatus _parseStatusFromString(String? status) {
+    if (status == null) return ProductStatus.available;
+
+    switch (status.toLowerCase()) {
+      case 'available':
+        return ProductStatus.available;
+      case 'out_of_stock':
+      case 'outofstock':
+        return ProductStatus.outOfStock;
+      case 'discontinued':
+        return ProductStatus.discontinued;
+      default:
+        return ProductStatus.available;
+    }
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'farmerId': farmerId,
+      'farmer_id': farmerId,
       'title': title,
       'description': description,
       'price': price,
       'category': category.toString().split('.').last,
       'quantity': quantity,
       'unit': unit,
-      'imageUrl': imageUrl,
-      'status': status.toString().split('.').last,
-      'createdDate': createdDate.toIso8601String(),
-      'lastUpdated': lastUpdated?.toIso8601String(),
-      'isOrganic': isOrganic,
-      'orderCount': orderCount,
+      'image_url': imageUrl,
+      'status': _statusToString(status),
+      'created_at': createdDate.toIso8601String(),
+      'updated_at': lastUpdated?.toIso8601String(),
+      'is_organic': isOrganic,
+      'order_count': orderCount,
       'rating': rating,
-      'reviewCount': reviewCount,
+      'review_count': reviewCount,
     };
+  }
+
+  // Helper method to convert status to API format
+  String _statusToString(ProductStatus status) {
+    switch (status) {
+      case ProductStatus.available:
+        return 'available';
+      case ProductStatus.outOfStock:
+        return 'out_of_stock';
+      case ProductStatus.discontinued:
+        return 'discontinued';
+    }
   }
 
   Product copyWith({

@@ -1,37 +1,50 @@
-enum OrderStatus { pending, confirmed, preparing, ready, delivered, cancelled }
+import 'product.dart';
+
+enum OrderStatus {
+  pending,
+  confirmed,
+  preparing,
+  shipped,
+  delivered,
+  cancelled,
+}
+
+enum PaymentStatus { pending, paid, failed, refunded }
 
 class OrderItem {
+  final String id;
   final String productId;
-  final String productTitle;
+  final Product product;
   final int quantity;
-  final double pricePerUnit;
-  final double totalPrice;
+  final double price; // price at time of order
 
   OrderItem({
+    required this.id,
     required this.productId,
-    required this.productTitle,
+    required this.product,
     required this.quantity,
-    required this.pricePerUnit,
-    required this.totalPrice,
+    required this.price,
   });
+
+  double get subtotal => price * quantity;
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
-      productId: json['productId'],
-      productTitle: json['productTitle'],
+      id: json['id'],
+      productId: json['product_id'],
+      product: Product.fromJson(json['product']),
       quantity: json['quantity'],
-      pricePerUnit: json['pricePerUnit'].toDouble(),
-      totalPrice: json['totalPrice'].toDouble(),
+      price: (json['price'] ?? 0).toDouble(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'productId': productId,
-      'productTitle': productTitle,
+      'id': id,
+      'product_id': productId,
+      'product': product.toJson(),
       'quantity': quantity,
-      'pricePerUnit': pricePerUnit,
-      'totalPrice': totalPrice,
+      'price': price,
     };
   }
 }
@@ -39,114 +52,169 @@ class OrderItem {
 class Order {
   final String id;
   final String buyerId;
-  final String buyerName;
-  final String farmerId;
-  final String farmerName;
   final List<OrderItem> items;
   final double totalAmount;
   final OrderStatus status;
-  final DateTime orderDate;
-  final DateTime? deliveryDate;
+  final PaymentStatus paymentStatus;
   final String deliveryAddress;
+  final String paymentMethod;
   final String? notes;
-  final double? rating; // Buyer's rating for this order
-  final String? review; // Buyer's review
+  final DateTime createdDate;
+  final DateTime updatedDate;
 
   Order({
     required this.id,
     required this.buyerId,
-    required this.buyerName,
-    required this.farmerId,
-    required this.farmerName,
     required this.items,
     required this.totalAmount,
     this.status = OrderStatus.pending,
-    required this.orderDate,
-    this.deliveryDate,
+    this.paymentStatus = PaymentStatus.pending,
     required this.deliveryAddress,
+    required this.paymentMethod,
     this.notes,
-    this.rating,
-    this.review,
+    required this.createdDate,
+    required this.updatedDate,
   });
+
+  // Get unique farmers from order items
+  List<String> get farmerIds {
+    return items.map((item) => item.product.farmerId).toSet().toList();
+  }
+
+  // Get total items count
+  int get totalItems {
+    return items.fold(0, (sum, item) => sum + item.quantity);
+  }
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
       id: json['id'],
-      buyerId: json['buyerId'],
-      buyerName: json['buyerName'],
-      farmerId: json['farmerId'],
-      farmerName: json['farmerName'],
+      buyerId: json['buyer_id'],
       items:
           (json['items'] as List)
               .map((item) => OrderItem.fromJson(item))
               .toList(),
-      totalAmount: json['totalAmount'].toDouble(),
-      status: OrderStatus.values.firstWhere(
-        (s) => s.toString().split('.').last == json['status'],
-        orElse: () => OrderStatus.pending,
-      ),
-      orderDate: DateTime.parse(json['orderDate']),
-      deliveryDate:
-          json['deliveryDate'] != null
-              ? DateTime.parse(json['deliveryDate'])
-              : null,
-      deliveryAddress: json['deliveryAddress'],
+      totalAmount: (json['total_amount'] ?? 0).toDouble(),
+      status: _parseOrderStatus(json['status']),
+      paymentStatus: _parsePaymentStatus(json['payment_status']),
+      deliveryAddress: json['delivery_address'] ?? '',
+      paymentMethod: json['payment_method'] ?? '',
       notes: json['notes'],
-      rating: json['rating']?.toDouble(),
-      review: json['review'],
+      createdDate: DateTime.parse(json['created_at']),
+      updatedDate:
+          json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'])
+              : DateTime.parse(json['created_at']),
     );
+  }
+
+  // Helper methods to parse enums
+  static OrderStatus _parseOrderStatus(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'pending':
+        return OrderStatus.pending;
+      case 'confirmed':
+        return OrderStatus.confirmed;
+      case 'preparing':
+        return OrderStatus.preparing;
+      case 'shipped':
+        return OrderStatus.shipped;
+      case 'delivered':
+        return OrderStatus.delivered;
+      case 'cancelled':
+        return OrderStatus.cancelled;
+      default:
+        return OrderStatus.pending;
+    }
+  }
+
+  static PaymentStatus _parsePaymentStatus(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'pending':
+        return PaymentStatus.pending;
+      case 'paid':
+        return PaymentStatus.paid;
+      case 'failed':
+        return PaymentStatus.failed;
+      case 'refunded':
+        return PaymentStatus.refunded;
+      default:
+        return PaymentStatus.pending;
+    }
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'buyerId': buyerId,
-      'buyerName': buyerName,
-      'farmerId': farmerId,
-      'farmerName': farmerName,
+      'buyer_id': buyerId,
       'items': items.map((item) => item.toJson()).toList(),
-      'totalAmount': totalAmount,
-      'status': status.toString().split('.').last,
-      'orderDate': orderDate.toIso8601String(),
-      'deliveryDate': deliveryDate?.toIso8601String(),
-      'deliveryAddress': deliveryAddress,
+      'total_amount': totalAmount,
+      'status': _statusToString(status),
+      'payment_status': _paymentStatusToString(paymentStatus),
+      'delivery_address': deliveryAddress,
+      'payment_method': paymentMethod,
       'notes': notes,
-      'rating': rating,
-      'review': review,
+      'created_at': createdDate.toIso8601String(),
+      'updated_at': updatedDate.toIso8601String(),
     };
+  }
+
+  // Helper methods to convert enums to strings
+  String _statusToString(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return 'pending';
+      case OrderStatus.confirmed:
+        return 'confirmed';
+      case OrderStatus.preparing:
+        return 'preparing';
+      case OrderStatus.shipped:
+        return 'shipped';
+      case OrderStatus.delivered:
+        return 'delivered';
+      case OrderStatus.cancelled:
+        return 'cancelled';
+    }
+  }
+
+  String _paymentStatusToString(PaymentStatus status) {
+    switch (status) {
+      case PaymentStatus.pending:
+        return 'pending';
+      case PaymentStatus.paid:
+        return 'paid';
+      case PaymentStatus.failed:
+        return 'failed';
+      case PaymentStatus.refunded:
+        return 'refunded';
+    }
   }
 
   Order copyWith({
     String? id,
     String? buyerId,
-    String? buyerName,
-    String? farmerId,
-    String? farmerName,
     List<OrderItem>? items,
     double? totalAmount,
     OrderStatus? status,
-    DateTime? orderDate,
-    DateTime? deliveryDate,
+    PaymentStatus? paymentStatus,
     String? deliveryAddress,
+    String? paymentMethod,
     String? notes,
-    double? rating,
-    String? review,
+    DateTime? createdDate,
+    DateTime? updatedDate,
   }) {
     return Order(
       id: id ?? this.id,
       buyerId: buyerId ?? this.buyerId,
-      buyerName: buyerName ?? this.buyerName,
-      farmerId: farmerId ?? this.farmerId,
-      farmerName: farmerName ?? this.farmerName,
       items: items ?? this.items,
       totalAmount: totalAmount ?? this.totalAmount,
       status: status ?? this.status,
-      orderDate: orderDate ?? this.orderDate,
-      deliveryDate: deliveryDate ?? this.deliveryDate,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
       notes: notes ?? this.notes,
-      rating: rating ?? this.rating,
-      review: review ?? this.review,
+      createdDate: createdDate ?? this.createdDate,
+      updatedDate: updatedDate ?? this.updatedDate,
     );
   }
 
@@ -159,12 +227,25 @@ class Order {
         return 'Confirmed';
       case OrderStatus.preparing:
         return 'Preparing';
-      case OrderStatus.ready:
-        return 'Ready';
+      case OrderStatus.shipped:
+        return 'Shipped';
       case OrderStatus.delivered:
         return 'Delivered';
       case OrderStatus.cancelled:
         return 'Cancelled';
+    }
+  }
+
+  String get paymentStatusDisplayName {
+    switch (paymentStatus) {
+      case PaymentStatus.pending:
+        return 'Pending';
+      case PaymentStatus.paid:
+        return 'Paid';
+      case PaymentStatus.failed:
+        return 'Failed';
+      case PaymentStatus.refunded:
+        return 'Refunded';
     }
   }
 
@@ -176,7 +257,12 @@ class Order {
     return status == OrderStatus.delivered;
   }
 
-  int get totalItems {
-    return items.fold(0, (sum, item) => sum + item.quantity);
+  bool get isCancelled {
+    return status == OrderStatus.cancelled;
+  }
+
+  // Format total amount
+  String get formattedTotal {
+    return '฿${totalAmount.toStringAsFixed(0)}';
   }
 }

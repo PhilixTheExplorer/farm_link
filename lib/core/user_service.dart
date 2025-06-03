@@ -200,9 +200,9 @@ class UserService extends ChangeNotifier {
 
     try {
       // Use API update only
-      final success = await _apiService.updateProfile(
+      final success = await _apiService.updateUser(
+        updatedUser.id,
         updatedUser.toJson(),
-        _authToken,
       );
       if (success) {
         _currentUser = updatedUser;
