@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/thai_button.dart';
 import '../components/app_drawer.dart';
 import '../core/theme/app_colors.dart';
+import '../core/router/app_router.dart';
 import '../services/user_service.dart';
 import '../models/user.dart';
 
@@ -42,18 +44,14 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             content: const Text('Are you sure you want to logout?'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
                 child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  context.pop();
                   // Navigate to login screen
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/login',
-                    (route) => false,
-                  );
+                  context.go(AppRoutes.login);
                 },
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.chilliRed,
@@ -70,7 +68,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      drawer: AppDrawer(currentRoute: '/profile-settings'),
+      drawer: AppDrawer(currentRoute: AppRoutes.profileSettings),
       appBar: AppBar(title: const Text('Profile & Settings')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -151,7 +149,7 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       label: 'Location',
                       value: _userService.currentUser?.location ?? 'Not set',
                     ),
-                    const Divider(height: 24),                
+                    const Divider(height: 24),
                   ],
                 ),
               ),

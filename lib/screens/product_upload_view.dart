@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/thai_button.dart';
 import '../components/thai_text_field.dart';
 import '../core/theme/app_colors.dart';
@@ -190,7 +191,7 @@ class _ProductUploadViewState extends State<ProductUploadView> {
           );
 
           // Navigate back to farmer dashboard
-          Navigator.pop(context);
+          context.pop();
         } else {
           // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
@@ -225,7 +226,7 @@ class _ProductUploadViewState extends State<ProductUploadView> {
         title: const Text('Add New Product'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
       ),
       body: SingleChildScrollView(

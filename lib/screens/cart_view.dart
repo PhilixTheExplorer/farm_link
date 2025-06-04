@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/thai_button.dart';
 import '../components/thai_text_field.dart';
 import '../components/app_drawer.dart';
 import '../core/theme/app_colors.dart';
+import '../core/router/app_router.dart';
 
 class CartView extends StatefulWidget {
   const CartView({super.key});
@@ -91,7 +93,7 @@ class _CartViewState extends State<CartView> {
       });
 
       // Navigate to order confirmation
-      Navigator.pushReplacementNamed(context, '/order-confirmation');
+      context.go(AppRoutes.orderConfirmation);
     });
   }
 
@@ -100,7 +102,7 @@ class _CartViewState extends State<CartView> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      drawer: AppDrawer(currentRoute: '/cart'),
+      drawer: AppDrawer(currentRoute: AppRoutes.cart),
       appBar: AppBar(title: const Text('Your Cart')),
       body:
           _cartItems.isEmpty
@@ -130,7 +132,7 @@ class _CartViewState extends State<CartView> {
                     const SizedBox(height: 24),
                     ThaiButton(
                       label: 'Continue Shopping',
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => context.pop(),
                       variant: ThaiButtonVariant.secondary,
                       icon: Icons.shopping_bag_outlined,
                     ),

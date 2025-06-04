@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/farm_card.dart';
 import '../components/app_drawer.dart';
 import '../core/theme/app_colors.dart';
+import '../core/router/app_router.dart';
 import '../repositories/product_repository.dart';
 import '../models/product.dart';
 
@@ -114,7 +116,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      drawer: AppDrawer(currentRoute: '/buyer-marketplace'),
+      drawer: AppDrawer(currentRoute: AppRoutes.buyerMarketplace),
       appBar: AppBar(
         title: const Text('Marketplace'),
         actions: [
@@ -126,7 +128,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
             onPressed: () {
-              Navigator.pushNamed(context, '/cart');
+              context.push(AppRoutes.cart);
             },
           ),
         ],
@@ -335,7 +337,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                             setState(() {
                               _sortOrder = 'price_asc';
                             });
-                            Navigator.pop(context);
+                            context.pop();
                           },
                           style: OutlinedButton.styleFrom(
                             backgroundColor:
@@ -367,7 +369,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                             setState(() {
                               _sortOrder = 'price_desc';
                             });
-                            Navigator.pop(context);
+                            context.pop();
                           },
                           style: OutlinedButton.styleFrom(
                             backgroundColor:
@@ -403,7 +405,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                             setState(() {
                               _sortOrder = 'none';
                             });
-                            Navigator.pop(context);
+                            context.pop();
                           },
                           child: Text('Clear Sort'),
                         ),
@@ -412,7 +414,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            context.pop();
                           },
                           child: Text('Done'),
                         ),
@@ -482,11 +484,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
             showDescription: false,
             onTap: () {
               // Navigate to product detail
-              Navigator.pushNamed(
-                context,
-                '/product-detail',
-                arguments: product,
-              );
+              context.push(AppRoutes.productDetail, extra: product);
             },
           );
         },

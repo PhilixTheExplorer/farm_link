@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/thai_button.dart';
 import '../core/theme/app_colors.dart';
+import '../core/router/app_router.dart';
 
 class OrderConfirmationView extends StatelessWidget {
   const OrderConfirmationView({super.key});
@@ -8,7 +10,7 @@ class OrderConfirmationView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Sample order data
     final orderData = {
       'orderNumber': 'FL-2023-0042',
@@ -64,9 +66,9 @@ class OrderConfirmationView extends StatelessWidget {
                         size: 48,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Thank You Message
                     Text(
                       'Thank You!',
@@ -81,9 +83,9 @@ class OrderConfirmationView extends StatelessWidget {
                       style: theme.textTheme.bodyLarge,
                       textAlign: TextAlign.center,
                     ),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Order Summary Card
                     Card(
                       shape: RoundedRectangleBorder(
@@ -147,9 +149,9 @@ class OrderConfirmationView extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            
+
                             const Divider(height: 32),
-                            
+
                             // Order Items
                             Text(
                               'Order Items',
@@ -158,64 +160,74 @@ class OrderConfirmationView extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            
+
                             ...List.generate(
                               (orderData['items'] as List).length,
                               (index) {
-                                final item = (orderData['items'] as List)[index];
+                                final item =
+                                    (orderData['items'] as List)[index];
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 16),
                                   child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       // Item Quantity
                                       Container(
                                         width: 24,
                                         height: 24,
                                         decoration: BoxDecoration(
-                                          color: AppColors.ricePaddyGreen.withOpacity(0.2),
+                                          color: AppColors.ricePaddyGreen
+                                              .withOpacity(0.2),
                                           shape: BoxShape.circle,
                                         ),
                                         child: Center(
                                           child: Text(
                                             item['quantity'].toString(),
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: AppColors.ricePaddyGreen,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color:
+                                                      AppColors.ricePaddyGreen,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                           ),
                                         ),
                                       ),
-                                      
+
                                       const SizedBox(width: 12),
-                                      
+
                                       // Item Details
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               item['title'],
-                                              style: theme.textTheme.titleSmall?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                              ),
+                                              style: theme.textTheme.titleSmall
+                                                  ?.copyWith(
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                             Text(
                                               'From ${item['farmer']['name']}',
-                                              style: theme.textTheme.bodySmall?.copyWith(
-                                                color: AppColors.palmAshGray,
-                                              ),
+                                              style: theme.textTheme.bodySmall
+                                                  ?.copyWith(
+                                                    color:
+                                                        AppColors.palmAshGray,
+                                                  ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      
+
                                       // Item Price
                                       Text(
                                         item['price'],
-                                        style: theme.textTheme.titleSmall?.copyWith(
-                                          color: AppColors.tamarindBrown,
-                                        ),
+                                        style: theme.textTheme.titleSmall
+                                            ?.copyWith(
+                                              color: AppColors.tamarindBrown,
+                                            ),
                                       ),
                                     ],
                                   ),
@@ -226,9 +238,9 @@ class OrderConfirmationView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 32),
-                    
+
                     // Farmer Contact Information
                     Text(
                       'Farmer Contact Information',
@@ -237,150 +249,164 @@ class OrderConfirmationView extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
-                    ...List.generate(
-                      (orderData['items'] as List).length,
-                      (index) {
-                        final item = (orderData['items'] as List)[index];
-                        final farmer = item['farmer'];
-                        
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Farmer Name and Product
-                                Row(
-                                  children: [
-                                    const CircleAvatar(
-                                      radius: 20,
-                                      backgroundImage: NetworkImage('https://images.unsplash.com/photo-1520466809213-7b9a56adcd45?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80'),
+
+                    ...List.generate((orderData['items'] as List).length, (
+                      index,
+                    ) {
+                      final item = (orderData['items'] as List)[index];
+                      final farmer = item['farmer'];
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Farmer Name and Product
+                              Row(
+                                children: [
+                                  const CircleAvatar(
+                                    radius: 20,
+                                    backgroundImage: NetworkImage(
+                                      'https://images.unsplash.com/photo-1520466809213-7b9a56adcd45?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80',
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            farmer['name'],
-                                            style: theme.textTheme.titleMedium?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          Text(
-                                            'For ${item['title']}',
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: AppColors.palmAshGray,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          farmer['name'],
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                        Text(
+                                          'For ${item['title']}',
+                                          style: theme.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color: AppColors.palmAshGray,
+                                              ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                                
-                                const SizedBox(height: 16),
-                                
-                                // Contact Details
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.location_on_outlined,
-                                      size: 16,
-                                      color: AppColors.palmAshGray,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      farmer['location'],
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.phone_outlined,
-                                      size: 16,
-                                      color: AppColors.palmAshGray,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      farmer['phone'],
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.email_outlined,
-                                      size: 16,
-                                      color: AppColors.palmAshGray,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      farmer['email'],
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                  ],
-                                ),
-                                
-                                const SizedBox(height: 16),
-                                
-                                // Contact Buttons
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        icon: const Icon(Icons.phone),
-                                        label: const Text('Call'),
-                                        onPressed: () {
-                                          // Call farmer
-                                        },
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: AppColors.tamarindBrown,
-                                          side: const BorderSide(color: AppColors.tamarindBrown),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Contact Details
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.location_on_outlined,
+                                    size: 16,
+                                    color: AppColors.palmAshGray,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    farmer['location'],
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.phone_outlined,
+                                    size: 16,
+                                    color: AppColors.palmAshGray,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    farmer['phone'],
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.email_outlined,
+                                    size: 16,
+                                    color: AppColors.palmAshGray,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    farmer['email'],
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Contact Buttons
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      icon: const Icon(Icons.phone),
+                                      label: const Text('Call'),
+                                      onPressed: () {
+                                        // Call farmer
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor:
+                                            AppColors.tamarindBrown,
+                                        side: const BorderSide(
+                                          color: AppColors.tamarindBrown,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
                                           ),
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: OutlinedButton.icon(
-                                        icon: const Icon(Icons.email),
-                                        label: const Text('Email'),
-                                        onPressed: () {
-                                          // Email farmer
-                                        },
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: AppColors.tamarindBrown,
-                                          side: const BorderSide(color: AppColors.tamarindBrown),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      icon: const Icon(Icons.email),
+                                      label: const Text('Email'),
+                                      onPressed: () {
+                                        // Email farmer
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor:
+                                            AppColors.tamarindBrown,
+                                        side: const BorderSide(
+                                          color: AppColors.tamarindBrown,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            16,
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
-                    
+                        ),
+                      );
+                    }),
+
                     const SizedBox(height: 16),
-                    
+
                     // Pickup Instructions
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -423,7 +449,7 @@ class OrderConfirmationView extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             // Bottom Buttons
             Container(
               padding: const EdgeInsets.all(16),
@@ -462,11 +488,7 @@ class OrderConfirmationView extends StatelessWidget {
                       label: 'Continue Shopping',
                       onPressed: () {
                         // Navigate to marketplace
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/buyer-marketplace',
-                          (route) => false,
-                        );
+                        context.go(AppRoutes.buyerMarketplace);
                       },
                       variant: ThaiButtonVariant.secondary,
                     ),

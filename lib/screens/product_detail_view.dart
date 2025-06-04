@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/thai_button.dart';
 import '../core/theme/app_colors.dart';
+import '../core/router/app_router.dart';
 
 class ProductDetailView extends StatefulWidget {
   final Map<String, dynamic>? product;
 
-  const ProductDetailView({
-    super.key,
-    this.product,
-  });
+  const ProductDetailView({super.key, this.product});
 
   @override
   State<ProductDetailView> createState() => _ProductDetailViewState();
@@ -20,10 +19,12 @@ class _ProductDetailViewState extends State<ProductDetailView> {
 
   // Sample product data if none provided
   final Map<String, dynamic> _defaultProduct = {
-    'imageUrl': 'https://images.unsplash.com/photo-1603833665858-e61d17a86224?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+    'imageUrl':
+        'https://images.unsplash.com/photo-1603833665858-e61d17a86224?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
     'title': 'Organic Rice',
     'price': '120',
-    'description': 'Freshly harvested jasmine rice from our farm in Chiang Mai. This premium quality rice is grown using traditional farming methods without chemical pesticides or fertilizers. Perfect for everyday meals or special occasions.',
+    'description':
+        'Freshly harvested jasmine rice from our farm in Chiang Mai. This premium quality rice is grown using traditional farming methods without chemical pesticides or fertilizers. Perfect for everyday meals or special occasions.',
     'category': 'Rice',
     'stock': 50,
     'farmer': {
@@ -63,12 +64,12 @@ class _ProductDetailViewState extends State<ProductDetailView> {
           textColor: Colors.white,
           onPressed: () {
             // Navigate to cart
-            Navigator.pushNamed(context, '/cart');
+            context.push(AppRoutes.cart);
           },
         ),
       ),
     );
-    
+
     // For demo purposes, set as purchased to show farmer info
     setState(() {
       _isPurchased = true;
@@ -79,7 +80,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final subtotal = int.parse(_product['price']) * _quantity;
-    
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -102,7 +103,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                 ),
                 child: const Icon(Icons.arrow_back),
               ),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.pop(),
             ),
             actions: [
               IconButton(
@@ -133,7 +134,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
               ),
             ],
           ),
-          
+
           // Product Details
           SliverToBoxAdapter(
             child: Container(
@@ -152,9 +153,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     padding: EdgeInsets.zero,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  
+
                   const SizedBox(height: 8),
-                  
+
                   // Title and Price
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,9 +177,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 8),
-                  
+
                   // Stock
                   Row(
                     children: [
@@ -196,9 +197,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Description
                   Text(
                     'Description',
@@ -211,9 +212,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     _product['description'],
                     style: theme.textTheme.bodyMedium,
                   ),
-                  
+
                   const SizedBox(height: 24),
-                  
+
                   // Farmer Info (visible only if purchased)
                   if (_isPurchased) ...[
                     Text(
@@ -238,7 +239,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                             children: [
                               const CircleAvatar(
                                 radius: 24,
-                                backgroundImage: NetworkImage('https://images.unsplash.com/photo-1520466809213-7b9a56adcd45?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80'),
+                                backgroundImage: NetworkImage(
+                                  'https://images.unsplash.com/photo-1520466809213-7b9a56adcd45?ixlib=rb-1.2.1&auto=format&fit=crop&w=634&q=80',
+                                ),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -247,15 +250,17 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                   children: [
                                     Text(
                                       _product['farmer']['name'],
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: theme.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
                                     Text(
                                       _product['farmer']['location'],
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        color: AppColors.palmAshGray,
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: AppColors.palmAshGray,
+                                          ),
                                     ),
                                   ],
                                 ),
@@ -274,7 +279,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                   },
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppColors.tamarindBrown,
-                                    side: const BorderSide(color: AppColors.tamarindBrown),
+                                    side: const BorderSide(
+                                      color: AppColors.tamarindBrown,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
@@ -291,7 +298,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                   },
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppColors.tamarindBrown,
-                                    side: const BorderSide(color: AppColors.tamarindBrown),
+                                    side: const BorderSide(
+                                      color: AppColors.tamarindBrown,
+                                    ),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
@@ -305,7 +314,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     ),
                     const SizedBox(height: 24),
                   ],
-                  
+
                   // Quantity Selector
                   Text(
                     'Quantity',
@@ -331,7 +340,10 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.bambooCream,
                           borderRadius: BorderRadius.circular(8),
@@ -367,9 +379,9 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   // Add to Cart Button
                   ThaiButton(
                     label: 'Add to Cart',

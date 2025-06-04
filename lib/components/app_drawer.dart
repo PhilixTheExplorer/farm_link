@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../core/theme/app_colors.dart';
+import '../core/router/app_router.dart';
 import '../services/user_service.dart';
 import '../models/user.dart';
 
@@ -153,13 +155,9 @@ class AppDrawer extends StatelessWidget {
           onTap:
               onTap ??
               () {
-                Navigator.pop(context); // Close drawer
+                context.pop(); // Close drawer
                 if (currentRoute != route) {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    route,
-                    (route) => false,
-                  );
+                  context.go(route);
                 }
               },
           child: Container(
@@ -222,7 +220,7 @@ class AppDrawer extends StatelessWidget {
         context,
         icon: Icons.storefront,
         title: 'Marketplace',
-        route: '/buyer-marketplace',
+        route: AppRoutes.buyerMarketplace,
       ),
     );
 
@@ -233,7 +231,7 @@ class AppDrawer extends StatelessWidget {
           context,
           icon: Icons.dashboard,
           title: 'Farmer Dashboard',
-          route: '/farmer-dashboard',
+          route: AppRoutes.farmerDashboard,
         ),
       );
     }
@@ -244,7 +242,7 @@ class AppDrawer extends StatelessWidget {
           context,
           icon: Icons.shopping_cart,
           title: 'Cart',
-          route: '/cart',
+          route: AppRoutes.cart,
         ),
       );
     }
@@ -255,7 +253,7 @@ class AppDrawer extends StatelessWidget {
           context,
           icon: Icons.eco,
           title: 'Impact Tracker',
-          route: '/impact-tracker',
+          route: AppRoutes.impactTracker,
         ),
       );
     }
@@ -266,7 +264,7 @@ class AppDrawer extends StatelessWidget {
         context,
         icon: Icons.person,
         title: 'Profile',
-        route: '/profile-settings',
+        route: AppRoutes.profileSettings,
       ),
     );
 
@@ -274,7 +272,7 @@ class AppDrawer extends StatelessWidget {
   }
 
   void _showAboutDialog(BuildContext context) {
-    Navigator.pop(context); // Close drawer
+    context.pop(); // Close drawer
     showDialog(
       context: context,
       builder:
@@ -286,7 +284,7 @@ class AppDrawer extends StatelessWidget {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
                 child: const Text('Close'),
               ),
             ],
@@ -295,7 +293,7 @@ class AppDrawer extends StatelessWidget {
   }
 
   void _showHelpDialog(BuildContext context) {
-    Navigator.pop(context); // Close drawer
+    context.pop(); // Close drawer
     showDialog(
       context: context,
       builder:
@@ -316,7 +314,7 @@ class AppDrawer extends StatelessWidget {
             ),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
                 child: const Text('Close'),
               ),
             ],
@@ -325,7 +323,7 @@ class AppDrawer extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
-    Navigator.pop(context); // Close drawer
+    context.pop(); // Close drawer
     showDialog(
       context: context,
       builder:
@@ -334,18 +332,14 @@ class AppDrawer extends StatelessWidget {
             content: const Text('Are you sure you want to logout?'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => context.pop(),
                 child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  context.pop();
                   UserService().logout(); // Clear user data
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/login',
-                    (route) => false,
-                  );
+                  context.go(AppRoutes.login);
                 },
                 child: const Text('Logout'),
               ),

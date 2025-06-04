@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/farm_card.dart';
 import '../components/app_drawer.dart';
 import '../core/theme/app_colors.dart';
+import '../core/router/app_router.dart';
 import '../services/user_service.dart';
 import '../services/product_service.dart';
 import '../models/product.dart';
@@ -69,14 +71,14 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView> {
     }
 
     return Scaffold(
-      drawer: AppDrawer(currentRoute: '/farmer-dashboard'),
+      drawer: AppDrawer(currentRoute: AppRoutes.farmerDashboard),
       appBar: AppBar(
         title: const Text('Farmer Dashboard'),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () {
-              Navigator.pushNamed(context, '/profile-settings');
+              context.push(AppRoutes.profileSettings);
             },
           ),
         ],
@@ -161,7 +163,7 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView> {
                                 Icons.shopping_bag,
                                 AppColors.tamarindBrown,
                               ),
-                            ),                          
+                            ),
                           ],
                         ),
                       ],
@@ -249,7 +251,7 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView> {
               ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/product-upload');
+          context.push(AppRoutes.productUpload);
         },
         backgroundColor: AppColors.bambooCream,
         child: const Icon(Icons.add, color: AppColors.chilliRed),

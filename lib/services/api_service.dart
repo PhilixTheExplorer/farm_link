@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -9,7 +10,7 @@ class ApiService {
 
   // Base URL for your backend API
   // Update this to match your backend server URL
-  static const String baseUrl = 'http://localhost:3000/api';
+  static String baseUrl = dotenv.env['BASE_URL'] ?? 'http://localhost:3000/api';
 
   // For Android emulator, you might need to use 10.0.2.2 instead of localhost
   // static const String baseUrl = 'http://10.0.2.2:3000/api';

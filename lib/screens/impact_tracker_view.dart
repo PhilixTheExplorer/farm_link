@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../components/app_drawer.dart';
 import '../core/theme/app_colors.dart';
+import '../core/router/app_router.dart';
 
 class ImpactTrackerView extends StatelessWidget {
   const ImpactTrackerView({Key? key}) : super(key: key);
@@ -21,7 +22,7 @@ class ImpactTrackerView extends StatelessWidget {
     };
 
     return Scaffold(
-      drawer: AppDrawer(currentRoute: '/impact-tracker'),
+      drawer: AppDrawer(currentRoute: AppRoutes.impactTracker),
       appBar: AppBar(title: const Text('Your Impact')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),

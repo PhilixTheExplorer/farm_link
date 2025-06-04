@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/thai_button.dart';
 import '../components/thai_text_field.dart';
 import '../core/theme/app_colors.dart';
+import '../core/router/app_router.dart';
 import '../services/user_service.dart';
 import '../models/user.dart';
 
@@ -87,14 +89,10 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
           final userService = UserService();
           final destination =
               userService.currentUserRole == UserRole.farmer
-                  ? '/farmer-dashboard'
-                  : '/buyer-marketplace';
+                  ? AppRoutes.farmerDashboard
+                  : AppRoutes.buyerMarketplace;
 
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            destination,
-            (route) => false,
-          );
+          context.go(destination);
         } else {
           _showErrorMessage(
             result.errorMessage ??
@@ -114,14 +112,10 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
           // Navigate based on selected role
           final destination =
               _selectedRole == 'Farmer'
-                  ? '/farmer-dashboard'
-                  : '/buyer-marketplace';
+                  ? AppRoutes.farmerDashboard
+                  : AppRoutes.buyerMarketplace;
 
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            destination,
-            (route) => false,
-          );
+          context.go(destination);
         } else {
           _showErrorMessage(
             result.errorMessage ?? 'Registration failed. Please try again.',

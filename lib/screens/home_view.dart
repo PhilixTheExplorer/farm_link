@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../components/app_drawer.dart';
+import '../core/router/app_router.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -97,7 +99,7 @@ class _HomeViewState extends State<HomeView> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_currentPage == _onboardingData.length - 1) {
-                      Navigator.pushReplacementNamed(context, '/home');
+                      context.go(AppRoutes.home);
                     } else {
                       _pageController.nextPage(
                         duration: const Duration(milliseconds: 300),
