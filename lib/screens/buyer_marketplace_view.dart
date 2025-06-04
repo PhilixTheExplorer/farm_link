@@ -473,8 +473,8 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
           childAspectRatio: 0.75,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
         ),
         itemCount: filteredProducts.length,
         itemBuilder: (context, index) {

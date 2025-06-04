@@ -228,21 +228,29 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView> {
                                 ],
                               ),
                             )
-                            : ListView.builder(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
+                            : GridView.builder(
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount:
+                                        MediaQuery.of(context).size.width > 600
+                                            ? 3
+                                            : 2,
+                                    childAspectRatio: 0.75,
+                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 8,
+                                  ),
                               itemCount: _products.length,
                               itemBuilder: (context, index) {
                                 final product = _products[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 16),
-                                  child: FarmCard(
-                                    product: product,
-                                    onTap: () {
-                                      // Navigate to product detail/edit
-                                    },
-                                  ),
+                                return FarmCard(
+                                  product: product,
+                                  showDescription: false,
+                                  onTap: () {
+                                    context.push(
+                                      AppRoutes.productDetail,
+                                      extra: product,
+                                    );
+                                  },
                                 );
                               },
                             ),

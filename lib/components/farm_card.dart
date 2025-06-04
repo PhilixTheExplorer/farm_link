@@ -81,7 +81,7 @@ class FarmCard extends StatelessWidget {
                       Flexible(
                         child: Text(
                           '฿${product.price}',
-                          style: theme.textTheme.titleLarge?.copyWith(
+                          style: theme.textTheme.titleMedium?.copyWith(
                             color: AppColors.tamarindBrown,
                             fontWeight: FontWeight.bold,
                           ),
