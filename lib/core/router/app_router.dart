@@ -5,6 +5,7 @@ import '../../screens/login_register_view.dart';
 import '../../screens/farmer_dashboard_view.dart';
 import '../../screens/buyer_marketplace_view.dart';
 import '../../screens/product_upload_view.dart';
+import '../../screens/product_edit_view.dart';
 import '../../screens/product_detail_view.dart';
 import '../../screens/cart_view.dart';
 import '../../screens/order_confirmation_view.dart';
@@ -50,14 +51,24 @@ class AppRouter {
         path: '/buyer-marketplace',
         name: 'buyer-marketplace',
         builder: (context, state) => const BuyerMarketplaceView(),
-      ),
-
-      // Product Upload Route
+      ), // Product Upload Route
       GoRoute(
         path: '/product-upload',
         name: 'product-upload',
         builder: (context, state) => const ProductUploadView(),
-      ), // Product Detail Route (with optional product parameter)
+      ),
+
+      // Product Edit Route
+      GoRoute(
+        path: '/product-edit',
+        name: 'product-edit',
+        builder: (context, state) {
+          final product = state.extra as Product;
+          return ProductEditView(product: product);
+        },
+      ),
+
+      // Product Detail Route (with optional product parameter)
       GoRoute(
         path: '/product-detail',
         name: 'product-detail',
@@ -207,6 +218,7 @@ class AppRoutes {
   static const String buyerMarketplace = '/buyer-marketplace';
   static const String farmerDashboard = '/farmer-dashboard';
   static const String productUpload = '/product-upload';
+  static const String productEdit = '/product-edit';
   static const String productDetail = '/product-detail';
   static const String cart = '/cart';
   static const String orderConfirmation = '/order-confirmation';

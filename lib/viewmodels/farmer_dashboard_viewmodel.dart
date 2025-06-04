@@ -167,6 +167,28 @@ class FarmerDashboardViewModel extends ChangeNotifier {
     }
   }
 
+  // Delete a product
+  Future<bool> deleteProduct(String productId) async {
+    try {
+      _setLoading(true);
+      final success = await _productService.deleteProduct(productId);
+
+      if (success) {
+        // Remove from local list if successful
+        removeProductFromList(productId);
+        debugPrint('Product deleted successfully: $productId');
+      }
+
+      _setLoading(false);
+      return success;
+    } catch (e) {
+      _setLoading(false);
+      _setError('Failed to delete product: ${e.toString()}');
+      debugPrint('Error deleting product: $e');
+      return false;
+    }
+  }
+
   // Private helper methods
   void _setLoading(bool loading) {
     _isLoading = loading;

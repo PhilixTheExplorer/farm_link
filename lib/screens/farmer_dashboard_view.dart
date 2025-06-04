@@ -5,6 +5,7 @@ import '../components/app_drawer.dart';
 import '../core/theme/app_colors.dart';
 import '../core/router/app_router.dart';
 import '../viewmodels/farmer_dashboard_viewmodel.dart';
+import '../models/product.dart';
 import '../core/di/service_locator.dart';
 
 class FarmerDashboardView extends StatefulWidget {
@@ -244,11 +245,21 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView>
                         return FarmCard(
                           product: product,
                           showDescription: false,
+                          showFarmerActions: true,
                           onTap: () {
                             context.push(
                               AppRoutes.productDetail,
                               extra: product,
                             );
+                          },
+                          onEdit: () async {
+                            await context.push(
+                              AppRoutes.productEdit,
+                              extra: product,
+                            );
+                          },
+                          onDelete: () {
+                            _showDeleteConfirmation(product);
                           },
                         );
                       },
@@ -385,6 +396,59 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView>
           ),
         ],
       ),
+    );
+  }
+
+  void _showDeleteConfirmation(Product product) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Product'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Are you sure you want to delete "${product.title}"?'),
+              const SizedBox(height: 8),
+              const Text(
+                'This action cannot be undone.',
+                style: TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                final success = await _viewModel.deleteProduct(product.id);
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        success
+                            ? 'Product deleted successfully'
+                            : 'Failed to delete product',
+                      ),
+                      backgroundColor:
+                          success
+                              ? AppColors.ricePaddyGreen
+                              : AppColors.chilliRed,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
     );
   }
 }
