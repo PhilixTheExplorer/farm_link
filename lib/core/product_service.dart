@@ -39,8 +39,10 @@ class ProductService extends ChangeNotifier {
         maxPrice: maxPrice,
       );
 
+      print('ProductService getAllProducts response: $response');
       if (response != null && response['success'] == true) {
-        final List<dynamic> productsData = response['data']['products'];
+        final List<dynamic> productsData = response['data'];
+        print('Products data length: ${productsData.length}');
         final products =
             productsData.map((json) => Product.fromJson(json)).toList();
         _products = products;
@@ -74,9 +76,8 @@ class ProductService extends ChangeNotifier {
         limit: limit,
         status: status,
       );
-
       if (response != null && response['success'] == true) {
-        final List<dynamic> productsData = response['data']['products'];
+        final List<dynamic> productsData = response['data'];
         final products =
             productsData.map((json) => Product.fromJson(json)).toList();
         _isLoading = false;

@@ -7,10 +7,10 @@ class ProductRepository {
   ProductRepository._internal();
 
   final ProductService _productService = ProductService();
-
   // Get all products
   Future<List<Product>> getAllProducts() async {
-    return await _productService.getAllProducts();
+    print('ProductRepository: Calling getAllProducts with limit 100');
+    return await _productService.getAllProducts(limit: 100);
   }
 
   // Get products by farmer ID

@@ -1,26 +1,15 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../models/product.dart';
 
 class FarmCard extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-  final String price;
-  final String description;
-  final String category;
-  final String? quantity;
-  final String? unit;
+  final Product product;
   final bool showDescription;
   final VoidCallback onTap;
 
   const FarmCard({
     super.key,
-    required this.imageUrl,
-    required this.title,
-    required this.price,
-    required this.description,
-    required this.category,
-    this.quantity,
-    this.unit,
+    required this.product,
     this.showDescription = true,
     required this.onTap,
   });
@@ -40,7 +29,7 @@ class FarmCard extends StatelessWidget {
             AspectRatio(
               aspectRatio: 16 / 9,
               child: Image.network(
-                imageUrl,
+                product.imageUrl,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
@@ -60,7 +49,7 @@ class FarmCard extends StatelessWidget {
                 children: [
                   // Category Chip
                   Chip(
-                    label: Text(category),
+                    label: Text(product.categoryDisplayName),
                     backgroundColor: AppColors.ricePaddyGreen.withOpacity(0.2),
                     labelStyle: theme.textTheme.labelSmall?.copyWith(
                       color: AppColors.ricePaddyGreen,
@@ -74,7 +63,7 @@ class FarmCard extends StatelessWidget {
 
                   // Title
                   Text(
-                    title,
+                    product.title,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -91,14 +80,14 @@ class FarmCard extends StatelessWidget {
                     children: [
                       Flexible(
                         child: Text(
-                          '฿$price',
+                          '฿${product.price}',
                           style: theme.textTheme.titleLarge?.copyWith(
                             color: AppColors.tamarindBrown,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      if (quantity != null && unit != null)
+                      if (product.quantity > 0)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -112,7 +101,7 @@ class FarmCard extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            '$quantity $unit',
+                            '${product.quantity} ${product.unit}',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: AppColors.tamarindBrown,
                               fontWeight: FontWeight.w600,
@@ -126,7 +115,7 @@ class FarmCard extends StatelessWidget {
                   if (showDescription) ...[
                     const SizedBox(height: 8),
                     Text(
-                      description,
+                      product.description,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: AppColors.palmAshGray,
                       ),

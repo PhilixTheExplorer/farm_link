@@ -48,13 +48,16 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
         _errorMessage = null;
       });
 
+      print('Loading products from API...');
       final products = await _productRepository.getAllProducts();
+      print('Loaded ${products.length} products');
 
       setState(() {
         _products = products;
         _isLoading = false;
       });
     } catch (e) {
+      print('Error loading products: $e');
       setState(() {
         _isLoading = false;
         _errorMessage = 'Failed to load products: ${e.toString()}';
@@ -72,7 +75,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
           // Category filter
           final categoryMatch =
               _selectedCategory == 'All' ||
-              _getCategoryDisplayName(product.category) == _selectedCategory;
+              product.categoryDisplayName == _selectedCategory;
 
           // Search filter
           final searchMatch =
@@ -98,27 +101,6 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
     }
 
     return filtered;
-  }
-
-  String _getCategoryDisplayName(ProductCategory category) {
-    switch (category) {
-      case ProductCategory.rice:
-        return 'Rice';
-      case ProductCategory.fruits:
-        return 'Fruits';
-      case ProductCategory.vegetables:
-        return 'Vegetables';
-      case ProductCategory.herbs:
-        return 'Herbs';
-      case ProductCategory.handmade:
-        return 'Handmade';
-      case ProductCategory.dairy:
-        return 'Dairy';
-      case ProductCategory.meat:
-        return 'Meat';
-      case ProductCategory.other:
-        return 'Other';
-    }
   }
 
   @override
@@ -496,13 +478,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
         itemBuilder: (context, index) {
           final product = filteredProducts[index];
           return FarmCard(
-            imageUrl: product.imageUrl,
-            title: product.title,
-            price: product.price.toString(),
-            description: product.description,
-            category: _getCategoryDisplayName(product.category),
-            quantity: product.quantity.toString(),
-            unit: product.unit,
+            product: product,
             showDescription: false,
             onTap: () {
               // Navigate to product detail

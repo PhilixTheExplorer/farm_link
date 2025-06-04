@@ -245,13 +245,7 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView> {
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 16),
                                   child: FarmCard(
-                                    imageUrl: product.imageUrl,
-                                    title: product.title,
-                                    price: product.price.toStringAsFixed(0),
-                                    description: product.description,
-                                    category: product.categoryDisplayName,
-                                    quantity: product.quantity.toString(),
-                                    unit: product.unit,
+                                    product: product,
                                     onTap: () {
                                       // Navigate to product detail/edit
                                     },
