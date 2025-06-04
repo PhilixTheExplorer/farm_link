@@ -1,13 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/farmer.dart';
 import '../repositories/farmer_repository.dart';
+import '../core/di/service_locator.dart';
 
 class FarmerService extends ChangeNotifier {
-  static final FarmerService _instance = FarmerService._internal();
-  factory FarmerService() => _instance;
-  FarmerService._internal();
-
-  final FarmerRepository _farmerRepository = FarmerRepository();
+  final FarmerRepository _farmerRepository = serviceLocator<FarmerRepository>();
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;

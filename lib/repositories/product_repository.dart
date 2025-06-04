@@ -1,12 +1,9 @@
 import '../models/product.dart';
 import '../services/api_service.dart';
+import '../core/di/service_locator.dart';
 
 class ProductRepository {
-  static final ProductRepository _instance = ProductRepository._internal();
-  factory ProductRepository() => _instance;
-  ProductRepository._internal();
-
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService = serviceLocator<ApiService>();
 
   // Get all products with optional filters
   Future<List<Product>> getAllProducts({

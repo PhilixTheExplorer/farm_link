@@ -2,6 +2,7 @@ import '../models/user.dart';
 import '../models/farmer.dart';
 import '../models/buyer.dart';
 import '../services/api_service.dart';
+import '../core/di/service_locator.dart';
 
 // Result classes for repository operations
 class UserLoginData {
@@ -12,11 +13,7 @@ class UserLoginData {
 }
 
 class UserRepository {
-  static final UserRepository _instance = UserRepository._internal();
-  factory UserRepository() => _instance;
-  UserRepository._internal();
-
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService = serviceLocator<ApiService>();
 
   // Current user cache
   User? _currentUser;

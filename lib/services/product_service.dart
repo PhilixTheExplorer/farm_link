@@ -1,13 +1,11 @@
 import 'package:flutter/foundation.dart';
 import '../models/product.dart';
 import '../repositories/product_repository.dart';
+import '../core/di/service_locator.dart';
 
 class ProductService extends ChangeNotifier {
-  static final ProductService _instance = ProductService._internal();
-  factory ProductService() => _instance;
-  ProductService._internal();
-
-  final ProductRepository _productRepository = ProductRepository();
+  final ProductRepository _productRepository =
+      serviceLocator<ProductRepository>();
   bool _isLoading = false;
   List<Product> _products = [];
 

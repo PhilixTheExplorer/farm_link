@@ -1,13 +1,10 @@
 // filepath: c:\Users\kshin\Desktop\CAMPUS\farm_link\lib\repositories\farmer_repository.dart
 import '../models/farmer.dart';
 import '../services/api_service.dart';
+import '../core/di/service_locator.dart';
 
 class FarmerRepository {
-  static final FarmerRepository _instance = FarmerRepository._internal();
-  factory FarmerRepository() => _instance;
-  FarmerRepository._internal();
-
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService = serviceLocator<ApiService>();
 
   // Get all farmers with filters
   Future<List<Farmer>> getFarmers({
@@ -27,7 +24,7 @@ class FarmerRepository {
       final List<dynamic> farmersData = response['data']['farmers'];
       return farmersData.map((json) => _createFarmerFromJson(json)).toList();
     }
-    
+
     throw Exception('Failed to get farmers');
   }
 
@@ -38,7 +35,7 @@ class FarmerRepository {
     if (response != null && response['success'] == true) {
       return _createFarmerFromJson(response['data']);
     }
-    
+
     return null;
   }
 
@@ -48,24 +45,27 @@ class FarmerRepository {
     Map<String, dynamic> farmerData,
   ) async {
     final success = await _apiService.updateFarmerProfile(farmerId, farmerData);
-    
+
     if (!success) {
       throw Exception('Failed to update farmer profile');
     }
-    
+
     // Get updated farmer data
     final updatedFarmer = await getFarmerById(farmerId);
     if (updatedFarmer == null) {
       throw Exception('Failed to retrieve updated farmer data');
     }
-    
+
     return updatedFarmer;
   }
 
   // Update farmer verification status
-  Future<void> updateVerificationStatus(String farmerId, bool isVerified) async {
+  Future<void> updateVerificationStatus(
+    String farmerId,
+    bool isVerified,
+  ) async {
     final success = await _apiService.verifyFarmer(farmerId, isVerified);
-    
+
     if (!success) {
       throw Exception('Failed to update farmer verification status');
     }
@@ -78,14 +78,14 @@ class FarmerRepository {
     if (response != null && response['success'] == true) {
       return response['data'];
     }
-    
+
     return null;
   }
 
   // Delete farmer
   Future<void> deleteFarmer(String farmerId) async {
     final success = await _apiService.deleteUser(farmerId);
-    
+
     if (!success) {
       throw Exception('Failed to delete farmer');
     }

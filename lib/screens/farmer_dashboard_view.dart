@@ -5,6 +5,7 @@ import '../components/app_drawer.dart';
 import '../core/theme/app_colors.dart';
 import '../core/router/app_router.dart';
 import '../viewmodels/farmer_dashboard_viewmodel.dart';
+import '../core/di/service_locator.dart';
 
 class FarmerDashboardView extends StatefulWidget {
   const FarmerDashboardView({super.key});
@@ -20,7 +21,7 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView>
   @override
   void initState() {
     super.initState();
-    _viewModel = FarmerDashboardViewModel();
+    _viewModel = serviceLocator<FarmerDashboardViewModel>();
     _viewModel.initialize();
   }
 

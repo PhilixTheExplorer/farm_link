@@ -3,15 +3,11 @@ import '../models/product.dart';
 import '../models/farmer.dart';
 import '../services/user_service.dart';
 import '../services/product_service.dart';
+import '../core/di/service_locator.dart';
 
 class FarmerDashboardViewModel extends ChangeNotifier {
-  static final FarmerDashboardViewModel _instance =
-      FarmerDashboardViewModel._internal();
-  factory FarmerDashboardViewModel() => _instance;
-  FarmerDashboardViewModel._internal();
-
-  final UserService _userService = UserService();
-  final ProductService _productService = ProductService();
+  final UserService _userService = serviceLocator<UserService>();
+  final ProductService _productService = serviceLocator<ProductService>();
 
   List<Product> _products = [];
   Map<String, dynamic> _farmerStats = {};
@@ -190,11 +186,6 @@ class FarmerDashboardViewModel extends ChangeNotifier {
   Future<void> onProductUploaded() async {
     debugPrint('Product uploaded successfully, refreshing dashboard...');
     await refresh();
-  }
-
-  // Static method to notify product upload from anywhere in the app
-  static void notifyProductUploaded() {
-    _instance.onProductUploaded();
   }
 
   @override

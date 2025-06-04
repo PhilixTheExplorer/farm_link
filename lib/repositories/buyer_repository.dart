@@ -1,13 +1,10 @@
 // filepath: c:\Users\kshin\Desktop\CAMPUS\farm_link\lib\repositories\buyer_repository.dart
 import '../models/buyer.dart';
 import '../services/api_service.dart';
+import '../core/di/service_locator.dart';
 
 class BuyerRepository {
-  static final BuyerRepository _instance = BuyerRepository._internal();
-  factory BuyerRepository() => _instance;
-  BuyerRepository._internal();
-
-  final ApiService _apiService = ApiService();
+  final ApiService _apiService = serviceLocator<ApiService>();
 
   // Get all buyers with filters
   Future<List<Buyer>> getBuyers({

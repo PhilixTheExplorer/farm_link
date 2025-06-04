@@ -8,6 +8,7 @@ import '../services/user_service.dart';
 import '../models/product.dart';
 import '../models/user.dart';
 import '../viewmodels/farmer_dashboard_viewmodel.dart';
+import '../core/di/service_locator.dart';
 
 class ProductUploadView extends StatefulWidget {
   const ProductUploadView({super.key});
@@ -24,8 +25,8 @@ class _ProductUploadViewState extends State<ProductUploadView> {
   final _descriptionController = TextEditingController();
   final _quantityController = TextEditingController();
 
-  final ProductService _productService = ProductService();
-  final UserService _userService = UserService();
+  final ProductService _productService = serviceLocator<ProductService>();
+  final UserService _userService = serviceLocator<UserService>();
 
   String _selectedCategory = 'vegetables';
   String _selectedQuantityUnit = 'pcs';
@@ -203,7 +204,7 @@ class _ProductUploadViewState extends State<ProductUploadView> {
           });
 
           // Notify the dashboard to refresh
-          FarmerDashboardViewModel.notifyProductUploaded();
+          serviceLocator<FarmerDashboardViewModel>().onProductUploaded();
 
           // Navigate back to farmer dashboard
           // The dashboard will automatically refresh when this screen is popped

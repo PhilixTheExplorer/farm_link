@@ -3,6 +3,7 @@ import '../models/user.dart';
 import '../models/farmer.dart';
 import '../models/buyer.dart';
 import '../repositories/user_repository.dart';
+import '../core/di/service_locator.dart';
 
 // Result classes for better error handling
 class LoginResult {
@@ -27,12 +28,14 @@ class RegisterResult {
 }
 
 class UserService extends ChangeNotifier {
-  static final UserService _instance = UserService._internal();
-  factory UserService() => _instance;
-  UserService._internal();
-
-  final UserRepository _userRepository = UserRepository();
+  final UserRepository _userRepository = serviceLocator<UserRepository>();
   bool _isLoading = false;
+
+  // Initialize service (called by service locator)
+  Future<void> initialize() async {
+    // Any initialization logic can go here
+    debugPrint('UserService initialized');
+  }
 
   // Getters
   User? get currentUser => _userRepository.currentUser;

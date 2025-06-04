@@ -1,13 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/buyer.dart';
 import '../repositories/buyer_repository.dart';
+import '../core/di/service_locator.dart';
 
 class BuyerService extends ChangeNotifier {
-  static final BuyerService _instance = BuyerService._internal();
-  factory BuyerService() => _instance;
-  BuyerService._internal();
-
-  final BuyerRepository _buyerRepository = BuyerRepository();
+  final BuyerRepository _buyerRepository = serviceLocator<BuyerRepository>();
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
