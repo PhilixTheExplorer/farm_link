@@ -1,109 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../components/farm_card.dart';
 import '../components/app_drawer.dart';
 import '../core/theme/app_colors.dart';
 import '../core/router/app_router.dart';
-import '../repositories/product_repository.dart';
 import '../models/product.dart';
+import '../viewmodels/buyer_marketplace_viewmodel.dart';
 
-class BuyerMarketplaceView extends StatefulWidget {
+class BuyerMarketplaceView extends ConsumerStatefulWidget {
   const BuyerMarketplaceView({super.key});
 
   @override
-  State<BuyerMarketplaceView> createState() => _BuyerMarketplaceViewState();
+  ConsumerState<BuyerMarketplaceView> createState() =>
+      _BuyerMarketplaceViewState();
 }
 
-class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
-  String _selectedCategory = 'All';
+class _BuyerMarketplaceViewState extends ConsumerState<BuyerMarketplaceView> {
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-  bool _isLoading = true;
-  String? _errorMessage;
-  String _sortOrder = 'none'; // 'none', 'price_asc', 'price_desc'
-  List<Product> _products = [];
-  final ProductRepository _productRepository = ProductRepository();
-
-  // Categories mapped from ProductCategory enum
-  final List<String> _categories = [
-    'All',
-    'Rice',
-    'Fruits',
-    'Vegetables',
-    'Herbs',
-    'Handmade',
-    'Dairy',
-    'Meat',
-    'Other',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadProducts();
-  }
-
-  Future<void> _loadProducts() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
-      print('Loading products from API...');
-      final products = await _productRepository.getAllProducts();
-      print('Loaded ${products.length} products');
-
-      setState(() {
-        _products = products;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print('Error loading products: $e');
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Failed to load products: ${e.toString()}';
-      });
-    }
-  }
-
-  Future<void> _refreshProducts() async {
-    await _loadProducts();
-  }
-
-  List<Product> _getFilteredProducts(List<Product> products) {
-    var filtered =
-        products.where((product) {
-          // Category filter
-          final categoryMatch =
-              _selectedCategory == 'All' ||
-              product.categoryDisplayName == _selectedCategory;
-
-          // Search filter
-          final searchMatch =
-              _searchQuery.isEmpty ||
-              product.title.toLowerCase().contains(
-                _searchQuery.toLowerCase(),
-              ) ||
-              product.description.toLowerCase().contains(
-                _searchQuery.toLowerCase(),
-              );
-
-          // Only show available products
-          final statusMatch = product.status == ProductStatus.available;
-
-          return categoryMatch && searchMatch && statusMatch;
-        }).toList();
-
-    // Apply sorting
-    if (_sortOrder == 'price_asc') {
-      filtered.sort((a, b) => a.price.compareTo(b.price));
-    } else if (_sortOrder == 'price_desc') {
-      filtered.sort((a, b) => b.price.compareTo(a.price));
-    }
-
-    return filtered;
-  }
 
   @override
   void dispose() {
@@ -114,6 +28,13 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final state = ref.watch(buyerMarketplaceProvider);
+    final notifier = ref.read(buyerMarketplaceProvider.notifier);
+
+    // Update search controller when state changes
+    if (_searchController.text != state.searchQuery) {
+      _searchController.text = state.searchQuery;
+    }
 
     return Scaffold(
       drawer: AppDrawer(currentRoute: AppRoutes.buyerMarketplace),
@@ -122,7 +43,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _refreshProducts,
+            onPressed: () => notifier.refreshProducts(),
             tooltip: 'Refresh',
           ),
           IconButton(
@@ -155,9 +76,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                     child: TextField(
                       controller: _searchController,
                       onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
+                        notifier.updateSearchQuery(value);
                       },
                       decoration: InputDecoration(
                         hintText: 'Search products...',
@@ -166,7 +85,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                           color: AppColors.palmAshGray,
                         ),
                         suffixIcon:
-                            _searchQuery.isNotEmpty
+                            state.searchQuery.isNotEmpty
                                 ? IconButton(
                                   icon: Icon(
                                     Icons.clear,
@@ -174,9 +93,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                                   ),
                                   onPressed: () {
                                     _searchController.clear();
-                                    setState(() {
-                                      _searchQuery = '';
-                                    });
+                                    notifier.clearSearchQuery();
                                   },
                                 )
                                 : null,
@@ -203,8 +120,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                     ),
                     child: IconButton(
                       onPressed: () {
-                        // Show filter options
-                        _showFilterBottomSheet(context);
+                        _showFilterBottomSheet(context, state, notifier);
                       },
                       icon: Icon(Icons.tune, color: Colors.white),
                       tooltip: 'Filter',
@@ -221,10 +137,10 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _categories.length,
+                itemCount: notifier.categories.length,
                 itemBuilder: (context, index) {
-                  final category = _categories[index];
-                  final isSelected = category == _selectedCategory;
+                  final category = notifier.categories[index];
+                  final isSelected = category == state.selectedCategory;
 
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -233,9 +149,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                       selected: isSelected,
                       onSelected: (selected) {
                         if (selected) {
-                          setState(() {
-                            _selectedCategory = category;
-                          });
+                          notifier.updateSelectedCategory(category);
                         }
                       },
                       backgroundColor: AppColors.bambooCream,
@@ -259,9 +173,9 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
             // Products Grid/List
             Expanded(
               child:
-                  _isLoading
+                  state.isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : _errorMessage != null
+                      : state.errorMessage != null
                       ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -280,7 +194,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              _errorMessage!,
+                              state.errorMessage!,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: AppColors.palmAshGray,
                               ),
@@ -288,13 +202,13 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
                             ),
                             const SizedBox(height: 16),
                             ElevatedButton(
-                              onPressed: _refreshProducts,
+                              onPressed: () => notifier.refreshProducts(),
                               child: const Text('Retry'),
                             ),
                           ],
                         ),
                       )
-                      : _buildProductsList(),
+                      : _buildProductsList(state, notifier),
             ),
           ],
         ),
@@ -302,137 +216,134 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
     );
   }
 
-  void _showFilterBottomSheet(BuildContext context) {
+  void _showFilterBottomSheet(
+    BuildContext context,
+    BuyerMarketplaceState state,
+    BuyerMarketplaceNotifier notifier,
+  ) {
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            return Container(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+        return Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Filter & Sort Products',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Sort by Price',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              SizedBox(height: 8),
+              Row(
                 children: [
-                  Text(
-                    'Filter & Sort Products',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        notifier.updateSortOrder('price_asc');
+                        context.pop();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor:
+                            state.sortOrder == 'price_asc'
+                                ? AppColors.ricePaddyGreen.withOpacity(0.1)
+                                : null,
+                        side: BorderSide(
+                          color:
+                              state.sortOrder == 'price_asc'
+                                  ? AppColors.ricePaddyGreen
+                                  : AppColors.palmAshGray,
+                        ),
+                      ),
+                      child: Text(
+                        'Low to High',
+                        style: TextStyle(
+                          color:
+                              state.sortOrder == 'price_asc'
+                                  ? AppColors.ricePaddyGreen
+                                  : null,
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Sort by Price',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            setState(() {
-                              _sortOrder = 'price_asc';
-                            });
-                            context.pop();
-                          },
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor:
-                                _sortOrder == 'price_asc'
-                                    ? AppColors.ricePaddyGreen.withOpacity(0.1)
-                                    : null,
-                            side: BorderSide(
-                              color:
-                                  _sortOrder == 'price_asc'
-                                      ? AppColors.ricePaddyGreen
-                                      : AppColors.palmAshGray,
-                            ),
-                          ),
-                          child: Text(
-                            'Low to High',
-                            style: TextStyle(
-                              color:
-                                  _sortOrder == 'price_asc'
-                                      ? AppColors.ricePaddyGreen
-                                      : null,
-                            ),
-                          ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        notifier.updateSortOrder('price_desc');
+                        context.pop();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor:
+                            state.sortOrder == 'price_desc'
+                                ? AppColors.ricePaddyGreen.withOpacity(0.1)
+                                : null,
+                        side: BorderSide(
+                          color:
+                              state.sortOrder == 'price_desc'
+                                  ? AppColors.ricePaddyGreen
+                                  : AppColors.palmAshGray,
                         ),
                       ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            setState(() {
-                              _sortOrder = 'price_desc';
-                            });
-                            context.pop();
-                          },
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor:
-                                _sortOrder == 'price_desc'
-                                    ? AppColors.ricePaddyGreen.withOpacity(0.1)
-                                    : null,
-                            side: BorderSide(
-                              color:
-                                  _sortOrder == 'price_desc'
-                                      ? AppColors.ricePaddyGreen
-                                      : AppColors.palmAshGray,
-                            ),
-                          ),
-                          child: Text(
-                            'High to Low',
-                            style: TextStyle(
-                              color:
-                                  _sortOrder == 'price_desc'
-                                      ? AppColors.ricePaddyGreen
-                                      : null,
-                            ),
-                          ),
+                      child: Text(
+                        'High to Low',
+                        style: TextStyle(
+                          color:
+                              state.sortOrder == 'price_desc'
+                                  ? AppColors.ricePaddyGreen
+                                  : null,
                         ),
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            setState(() {
-                              _sortOrder = 'none';
-                            });
-                            context.pop();
-                          },
-                          child: Text('Clear Sort'),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            context.pop();
-                          },
-                          child: Text('Done'),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
-            );
-          },
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        notifier.clearSortOrder();
+                        context.pop();
+                      },
+                      child: Text('Clear Sort'),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        context.pop();
+                      },
+                      child: Text('Done'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         );
       },
     );
   }
 
-  Widget _buildProductsList() {
+  Widget _buildProductsList(
+    BuyerMarketplaceState state,
+    BuyerMarketplaceNotifier notifier,
+  ) {
     final theme = Theme.of(context);
-    final filteredProducts = _getFilteredProducts(_products);
+    final filteredProducts = state.filteredProducts;
 
     if (filteredProducts.isEmpty) {
       return Center(
@@ -453,7 +364,7 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
             ),
             const SizedBox(height: 8),
             Text(
-              _searchQuery.isNotEmpty
+              state.searchQuery.isNotEmpty
                   ? 'Try a different search term'
                   : 'Try selecting a different category',
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -467,27 +378,64 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
     }
 
     return RefreshIndicator(
-      onRefresh: _refreshProducts,
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
-          childAspectRatio: 0.75,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-        ),
-        itemCount: filteredProducts.length,
-        itemBuilder: (context, index) {
-          final product = filteredProducts[index];
-          return FarmCard(
-            product: product,
-            showDescription: false,
-            onTap: () {
-              // Navigate to product detail
-              context.push(AppRoutes.productDetail, extra: product);
-            },
-          );
+      onRefresh: () => notifier.refreshProducts(),
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          // Check if we've reached near the end of the list
+          if (scrollInfo.metrics.pixels >=
+                  scrollInfo.metrics.maxScrollExtent * 0.8 &&
+              !state.isLoadingMore &&
+              state.hasMoreProducts) {
+            // Load more products when user scrolls to 80% of the list
+            notifier.loadMoreProducts();
+          }
+          return true;
         },
+        child: GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+            childAspectRatio: 0.75,
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+          ),
+          // Add extra items for loading indicator if we're loading more or have more products
+          itemCount:
+              filteredProducts.length +
+              (state.hasMoreProducts || state.isLoadingMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            // Show loading indicator at the end if loading more
+            if (index >= filteredProducts.length) {
+              if (state.isLoadingMore) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              } else if (state.hasMoreProducts) {
+                // Show a message that more products are available
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text('Scroll to load more...'),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            }
+
+            final product = filteredProducts[index];
+            return FarmCard(
+              product: product,
+              showDescription: false,
+              onTap: () {
+                // Navigate to product detail
+                context.push(AppRoutes.productDetail, extra: product);
+              },
+            );
+          },
+        ),
       ),
     );
   }
