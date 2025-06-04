@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../models/buyer.dart';
-import 'api_service.dart';
+import '../repositories/buyer_repository.dart';
 
 class BuyerService extends ChangeNotifier {
   static final BuyerService _instance = BuyerService._internal();
   factory BuyerService() => _instance;
   BuyerService._internal();
 
-  final ApiService _apiService = ApiService();
+  final BuyerRepository _buyerRepository = BuyerRepository();
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
@@ -18,45 +18,32 @@ class BuyerService extends ChangeNotifier {
     int limit = 10,
     String? search,
   }) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      final response = await _apiService.getBuyers(
+      final buyers = await _buyerRepository.getBuyers(
         page: page,
         limit: limit,
         search: search,
       );
 
-      if (response != null && response['success'] == true) {
-        final List<dynamic> buyersData = response['data']['buyers'];
-        final buyers =
-            buyersData.map((json) => _createBuyerFromJson(json)).toList();
-        _isLoading = false;
-        notifyListeners();
-        return buyers;
-      }
+      _setLoading(false);
+      return buyers;
     } catch (e) {
       debugPrint('Get buyers error: $e');
+      _setLoading(false);
+      return [];
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return [];
   }
 
   // Get buyer by ID
   Future<Buyer?> getBuyerById(String buyerId) async {
     try {
-      final response = await _apiService.getBuyerByUserId(buyerId);
-
-      if (response != null && response['success'] == true) {
-        return _createBuyerFromJson(response['data']);
-      }
+      return await _buyerRepository.getBuyerById(buyerId);
     } catch (e) {
       debugPrint('Get buyer by ID error: $e');
+      return null;
     }
-    return null;
   }
 
   // Update buyer profile
@@ -64,18 +51,15 @@ class BuyerService extends ChangeNotifier {
     String buyerId,
     Map<String, dynamic> buyerData,
   ) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      final success = await _apiService.updateBuyerProfile(buyerId, buyerData);
-      _isLoading = false;
-      notifyListeners();
-      return success;
+      await _buyerRepository.updateBuyerProfile(buyerId, buyerData);
+      _setLoading(false);
+      return true;
     } catch (e) {
       debugPrint('Update buyer profile error: $e');
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
       return false;
     }
   }
@@ -83,59 +67,32 @@ class BuyerService extends ChangeNotifier {
   // Get top buyers
   Future<List<Buyer>> getTopBuyers({int limit = 10}) async {
     try {
-      final response = await _apiService.getTopBuyers(limit: limit);
-
-      if (response != null && response['success'] == true) {
-        final List<dynamic> buyersData = response['data'];
-        return buyersData.map((json) => _createBuyerFromJson(json)).toList();
-      }
+      return await _buyerRepository.getTopBuyers(limit: limit);
     } catch (e) {
       debugPrint('Get top buyers error: $e');
+      return [];
     }
-    return [];
   }
 
   // Get buyer statistics
   Future<Map<String, dynamic>?> getBuyerStats(String buyerId) async {
     try {
-      final response = await _apiService.getBuyerStats(buyerId);
-
-      if (response != null && response['success'] == true) {
-        return response['data'];
-      }
+      return await _buyerRepository.getBuyerStats(buyerId);
     } catch (e) {
       debugPrint('Get buyer stats error: $e');
+      return null;
     }
-    return null;
   }
 
   // Delete buyer (Admin only)
   Future<bool> deleteBuyer(String buyerId) async {
     try {
-      // Use the deleteUser method since buyers are users with buyer role
-      return await _apiService.deleteUser(buyerId);
+      await _buyerRepository.deleteBuyer(buyerId);
+      return true;
     } catch (e) {
       debugPrint('Delete buyer error: $e');
       return false;
     }
-  }
-
-  // Helper method to create Buyer object from JSON
-  Buyer _createBuyerFromJson(Map<String, dynamic> json) {
-    final userData = json['user'] ?? json;
-    final profileData = json['profile'] ?? json;
-
-    return Buyer(
-      id: userData['id'],
-      email: userData['email'],
-      name: userData['name'],
-      phone: userData['phone'] ?? '',
-      location: userData['location'] ?? '',
-      profileImageUrl: userData['profile_image_url'],
-      totalSpent: (profileData['total_spent'] ?? 0).toDouble(),
-      totalOrders: profileData['total_orders'] ?? 0,
-      deliveryAddress: profileData['delivery_address'] ?? '',
-    );
   }
 
   // Search buyers
@@ -147,7 +104,7 @@ class BuyerService extends ChangeNotifier {
     return await getBuyers(search: query, page: page, limit: limit);
   }
 
-  // Format spending amount
+  // Business logic helper methods
   String formatSpending(double amount) {
     return '฿${amount.toStringAsFixed(0)}';
   }
@@ -162,5 +119,32 @@ class BuyerService extends ChangeNotifier {
       debugPrint('Get buyer ranking error: $e');
       return null;
     }
+  }
+
+  String getBuyerTier(double totalSpent) {
+    if (totalSpent >= 10000) {
+      return 'Gold';
+    } else if (totalSpent >= 5000) {
+      return 'Silver';
+    } else if (totalSpent >= 1000) {
+      return 'Bronze';
+    } else {
+      return 'Basic';
+    }
+  }
+
+  bool isActiveCustomer(Buyer buyer) {
+    return buyer.totalOrders > 0 && buyer.totalSpent > 0;
+  }
+
+  double getAverageOrderValue(Buyer buyer) {
+    if (buyer.totalOrders == 0) return 0.0;
+    return buyer.totalSpent / buyer.totalOrders;
+  }
+
+  // Private helper methods
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
   }
 }

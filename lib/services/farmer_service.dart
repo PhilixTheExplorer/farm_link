@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import '../models/farmer.dart';
-import 'api_service.dart';
+import '../repositories/farmer_repository.dart';
 
 class FarmerService extends ChangeNotifier {
   static final FarmerService _instance = FarmerService._internal();
   factory FarmerService() => _instance;
   FarmerService._internal();
 
-  final ApiService _apiService = ApiService();
+  final FarmerRepository _farmerRepository = FarmerRepository();
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
@@ -19,46 +19,33 @@ class FarmerService extends ChangeNotifier {
     String? search,
     bool? verified,
   }) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      final response = await _apiService.getFarmers(
+      final farmers = await _farmerRepository.getFarmers(
         page: page,
         limit: limit,
         search: search,
         verified: verified,
       );
 
-      if (response != null && response['success'] == true) {
-        final List<dynamic> farmersData = response['data']['farmers'];
-        final farmers =
-            farmersData.map((json) => _createFarmerFromJson(json)).toList();
-        _isLoading = false;
-        notifyListeners();
-        return farmers;
-      }
+      _setLoading(false);
+      return farmers;
     } catch (e) {
       debugPrint('Get farmers error: $e');
+      _setLoading(false);
+      return [];
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return [];
   }
 
   // Get farmer by ID
   Future<Farmer?> getFarmerById(String farmerId) async {
     try {
-      final response = await _apiService.getFarmerById(farmerId);
-
-      if (response != null && response['success'] == true) {
-        return _createFarmerFromJson(response['data']);
-      }
+      return await _farmerRepository.getFarmerById(farmerId);
     } catch (e) {
       debugPrint('Get farmer by ID error: $e');
+      return null;
     }
-    return null;
   }
 
   // Update farmer profile
@@ -66,21 +53,15 @@ class FarmerService extends ChangeNotifier {
     String farmerId,
     Map<String, dynamic> farmerData,
   ) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      final success = await _apiService.updateFarmerProfile(
-        farmerId,
-        farmerData,
-      );
-      _isLoading = false;
-      notifyListeners();
-      return success;
+      await _farmerRepository.updateFarmerProfile(farmerId, farmerData);
+      _setLoading(false);
+      return true;
     } catch (e) {
       debugPrint('Update farmer profile error: $e');
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
       return false;
     }
   }
@@ -91,7 +72,8 @@ class FarmerService extends ChangeNotifier {
     bool isVerified,
   ) async {
     try {
-      return await _apiService.verifyFarmer(farmerId, isVerified);
+      await _farmerRepository.updateVerificationStatus(farmerId, isVerified);
+      return true;
     } catch (e) {
       debugPrint('Update farmer verification error: $e');
       return false;
@@ -101,65 +83,36 @@ class FarmerService extends ChangeNotifier {
   // Get top farmers
   Future<List<Farmer>> getTopFarmers({int limit = 10}) async {
     try {
-      // Use the existing getFarmers method with verified farmers only
-      final response = await _apiService.getFarmers(
+      return await _farmerRepository.getFarmers(
         page: 1,
         limit: limit,
         verified: true,
       );
-
-      if (response != null && response['success'] == true) {
-        final List<dynamic> farmersData = response['data']['farmers'];
-        return farmersData.map((json) => _createFarmerFromJson(json)).toList();
-      }
     } catch (e) {
       debugPrint('Get top farmers error: $e');
+      return [];
     }
-    return [];
   }
 
   // Get farmer statistics
   Future<Map<String, dynamic>?> getFarmerStats(String farmerId) async {
     try {
-      final response = await _apiService.getFarmerStats(farmerId);
-
-      if (response != null && response['success'] == true) {
-        return response['data'];
-      }
+      return await _farmerRepository.getFarmerStats(farmerId);
     } catch (e) {
       debugPrint('Get farmer stats error: $e');
+      return null;
     }
-    return null;
   }
 
   // Delete farmer (Admin only)
   Future<bool> deleteFarmer(String farmerId) async {
     try {
-      // Use the deleteUser method since farmers are users with farmer role
-      return await _apiService.deleteUser(farmerId);
+      await _farmerRepository.deleteFarmer(farmerId);
+      return true;
     } catch (e) {
       debugPrint('Delete farmer error: $e');
       return false;
     }
-  }
-
-  // Helper method to create Farmer object from JSON
-  Farmer _createFarmerFromJson(Map<String, dynamic> json) {
-    final userData = json['user'] ?? json;
-    final profileData = json['profile'] ?? json;
-
-    return Farmer(
-      id: userData['id'],
-      email: userData['email'],
-      name: userData['name'],
-      phone: userData['phone'] ?? '',
-      location: userData['location'] ?? '',
-      profileImageUrl: userData['profile_image_url'],
-      farmName: profileData['farm_name'] ?? '',
-      farmAddress: profileData['farm_address'] ?? '',
-      totalSales: (profileData['total_sales'] ?? 0).toDouble(),
-      isVerified: profileData['is_verified'] ?? false,
-    );
   }
 
   // Search farmers
@@ -179,8 +132,24 @@ class FarmerService extends ChangeNotifier {
     return await getFarmers(verified: true, page: page, limit: limit);
   }
 
-  // Format sales amount
+  // Business logic helper methods
   String formatSales(double amount) {
     return '฿${amount.toStringAsFixed(0)}';
+  }
+
+  bool isEligibleForVerification(Farmer farmer) {
+    return (farmer.farmName?.isNotEmpty ?? false) &&
+        (farmer.farmAddress?.isNotEmpty ?? false) &&
+        farmer.totalSales > 0;
+  }
+
+  String getVerificationStatusText(bool isVerified) {
+    return isVerified ? 'Verified' : 'Pending Verification';
+  }
+
+  // Private helper methods
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
   }
 }

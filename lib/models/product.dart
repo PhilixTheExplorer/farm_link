@@ -123,6 +123,20 @@ class Product {
     };
   }
 
+  // Helper method for product creation (excludes ID field, farmer_id comes from token)
+  Map<String, dynamic> toCreateJson() {
+    return {
+      'title': title,
+      'description': description,
+      'price': price,
+      'category': category.toString().split('.').last,
+      'quantity': quantity,
+      'unit': unit,
+      'image_url': imageUrl,
+      'status': _statusToString(status),
+    };
+  }
+
   // Helper method to convert status to API format
   String _statusToString(ProductStatus status) {
     switch (status) {

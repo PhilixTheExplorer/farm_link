@@ -1,18 +1,19 @@
 import 'package:flutter/foundation.dart';
 import '../models/product.dart';
-import 'api_service.dart';
+import '../repositories/product_repository.dart';
 
 class ProductService extends ChangeNotifier {
   static final ProductService _instance = ProductService._internal();
   factory ProductService() => _instance;
   ProductService._internal();
 
-  final ApiService _apiService = ApiService();
+  final ProductRepository _productRepository = ProductRepository();
   bool _isLoading = false;
   List<Product> _products = [];
 
   bool get isLoading => _isLoading;
   List<Product> get products => _products;
+
   // Get all products with optional filters
   Future<List<Product>> getAllProducts({
     int page = 1,
@@ -23,11 +24,10 @@ class ProductService extends ChangeNotifier {
     double? minPrice,
     double? maxPrice,
   }) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      final response = await _apiService.getProducts(
+      final products = await _productRepository.getAllProducts(
         page: page,
         limit: limit,
         search: search,
@@ -37,24 +37,14 @@ class ProductService extends ChangeNotifier {
         maxPrice: maxPrice,
       );
 
-      print('ProductService getAllProducts response: $response');
-      if (response != null && response['success'] == true) {
-        final List<dynamic> productsData = response['data'];
-        print('Products data length: ${productsData.length}');
-        final products =
-            productsData.map((json) => Product.fromJson(json)).toList();
-        _products = products;
-        _isLoading = false;
-        notifyListeners();
-        return products;
-      }
+      _products = products;
+      _setLoading(false);
+      return products;
     } catch (e) {
       debugPrint('Get all products error: $e');
+      _setLoading(false);
+      return [];
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return [];
   }
 
   // Get products for a specific farmer
@@ -64,109 +54,76 @@ class ProductService extends ChangeNotifier {
     int limit = 10,
     String? status,
   }) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      final response = await _apiService.getProductsByFarmer(
+      final products = await _productRepository.getProductsByFarmerId(
         farmerId,
         page: page,
         limit: limit,
         status: status,
       );
-      if (response != null && response['success'] == true) {
-        final List<dynamic> productsData = response['data'];
-        final products =
-            productsData.map((json) => Product.fromJson(json)).toList();
-        _isLoading = false;
-        notifyListeners();
-        return products;
-      }
+
+      _setLoading(false);
+      return products;
     } catch (e) {
       debugPrint('Get farmer products error: $e');
+      _setLoading(false);
+      return [];
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return [];
   }
 
   // Get product by ID
   Future<Product?> getProductById(String productId) async {
     try {
-      final response = await _apiService.getProductById(productId);
-
-      if (response != null && response['success'] == true) {
-        return Product.fromJson(response['data']);
-      }
+      return await _productRepository.getProductById(productId);
     } catch (e) {
       debugPrint('Get product by ID error: $e');
+      return null;
     }
-    return null;
   }
 
   // Add new product
   Future<bool> addProduct(Product product) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      print(
-        'ProductService: Adding product with farmer_id: ${product.farmerId}',
-      );
-      print(
-        'ProductService: API service auth token available: ${_apiService.authToken != null}',
-      );
-
-      final response = await _apiService.createProduct(product.toJson());
-      print('ProductService: Create product response: $response');
-
-      _isLoading = false;
-      notifyListeners();
-      return response != null && response['success'] == true;
+      await _productRepository.addProduct(product);
+      _setLoading(false);
+      return true;
     } catch (e) {
       debugPrint('Add product error: $e');
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
       return false;
     }
   }
 
   // Update product
   Future<bool> updateProduct(Product product) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      final success = await _apiService.updateProduct(
-        product.id,
-        product.toJson(),
-      );
-      _isLoading = false;
-      notifyListeners();
-      return success;
+      await _productRepository.updateProduct(product);
+      _setLoading(false);
+      return true;
     } catch (e) {
       debugPrint('Update product error: $e');
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
       return false;
     }
   }
 
   // Delete product
   Future<bool> deleteProduct(String productId) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      final success = await _apiService.deleteProduct(productId);
-      _isLoading = false;
-      notifyListeners();
-      return success;
+      await _productRepository.deleteProduct(productId);
+      _setLoading(false);
+      return true;
     } catch (e) {
       debugPrint('Delete product error: $e');
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
       return false;
     }
   }
@@ -174,7 +131,8 @@ class ProductService extends ChangeNotifier {
   // Update product status
   Future<bool> updateProductStatus(String productId, String status) async {
     try {
-      return await _apiService.updateProductStatus(productId, status);
+      await _productRepository.updateProductStatus(productId, status);
+      return true;
     } catch (e) {
       debugPrint('Update product status error: $e');
       return false;
@@ -184,7 +142,8 @@ class ProductService extends ChangeNotifier {
   // Update product quantity
   Future<bool> updateProductQuantity(String productId, int quantity) async {
     try {
-      return await _apiService.updateProductQuantity(productId, quantity);
+      await _productRepository.updateProductQuantity(productId, quantity);
+      return true;
     } catch (e) {
       debugPrint('Update product quantity error: $e');
       return false;
@@ -207,54 +166,39 @@ class ProductService extends ChangeNotifier {
     int limit = 10,
     String? status,
   }) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      final response = await _apiService.getProductsByCategory(
+      final products = await _productRepository.getProductsByCategory(
         category,
         page: page,
         limit: limit,
         status: status,
       );
 
-      if (response != null && response['success'] == true) {
-        final List<dynamic> productsData = response['data']['products'];
-        final products =
-            productsData.map((json) => Product.fromJson(json)).toList();
-        _isLoading = false;
-        notifyListeners();
-        return products;
-      }
+      _setLoading(false);
+      return products;
     } catch (e) {
       debugPrint('Get products by category error: $e');
+      _setLoading(false);
+      return [];
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return [];
   }
 
   // Get featured/popular products
   Future<List<Product>> getFeaturedProducts({int limit = 10}) async {
     try {
-      final response = await _apiService.getFeaturedProducts(limit: limit);
-
-      if (response != null && response['success'] == true) {
-        final List<dynamic> productsData = response['data'];
-        return productsData.map((json) => Product.fromJson(json)).toList();
-      }
+      return await _productRepository.getFeaturedProducts(limit: limit);
     } catch (e) {
       debugPrint('Get featured products error: $e');
+      return [];
     }
-    return [];
   }
 
   // Get product categories
   Future<List<String>> getProductCategories() async {
     try {
-      final categories = await _apiService.getProductCategories();
-      return categories ?? [];
+      return await _productRepository.getProductCategories();
     } catch (e) {
       debugPrint('Get product categories error: $e');
       return [];
@@ -264,40 +208,17 @@ class ProductService extends ChangeNotifier {
   // Get product units
   Future<List<String>> getProductUnits() async {
     try {
-      final units = await _apiService.getProductUnits();
-      return units ?? [];
+      return await _productRepository.getProductUnits();
     } catch (e) {
       debugPrint('Get product units error: $e');
       return [];
     }
   }
 
-  // Get farmer statistics (using API aggregation)
+  // Get farmer statistics
   Future<Map<String, dynamic>> getFarmerStats(String farmerId) async {
     try {
-      // This would ideally be a dedicated API endpoint for farmer stats
-      // For now, we'll calculate from available data
-      final products = await getFarmerProducts(farmerId);
-
-      int productCount = products.length;
-      int totalOrders = 0;
-      int availableProducts = 0;
-      double totalRevenue = 0.0;
-
-      for (final product in products) {
-        totalOrders += product.orderCount;
-        if (product.isAvailable) {
-          availableProducts++;
-        }
-        totalRevenue += product.price * product.orderCount;
-      }
-
-      return {
-        'productCount': productCount,
-        'totalRevenue': totalRevenue,
-        'totalOrders': totalOrders,
-        'availableProducts': availableProducts,
-      };
+      return await _productRepository.getFarmerStats(farmerId);
     } catch (e) {
       debugPrint('Get farmer stats error: $e');
       return {
@@ -309,17 +230,15 @@ class ProductService extends ChangeNotifier {
     }
   }
 
-  // Generate product ID (this might be handled by backend now)
+  // Business logic helpers
   String generateProductId() {
     return 'prod_${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  // Helper method to format price
   String formatPrice(double price) {
     return '฿${price.toStringAsFixed(0)}';
   }
 
-  // Helper method to get category icon
   String getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
       case 'rice':
@@ -339,5 +258,18 @@ class ProductService extends ChangeNotifier {
       default:
         return '📦';
     }
+  }
+
+  bool validateProduct(Product product) {
+    return product.title.isNotEmpty &&
+        product.price > 0 &&
+        product.quantity >= 0 &&
+        product.farmerId.isNotEmpty;
+  }
+
+  // Private helper methods
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
   }
 }
