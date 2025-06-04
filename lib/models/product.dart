@@ -24,10 +24,7 @@ class Product {
   final ProductStatus status;
   final DateTime createdDate;
   final DateTime? lastUpdated;
-  final bool isOrganic;
   final int orderCount; // number of times this product was ordered
-  final double rating; // average rating from buyers
-  final int reviewCount;
 
   Product({
     required this.id,
@@ -42,10 +39,7 @@ class Product {
     this.status = ProductStatus.available,
     required this.createdDate,
     this.lastUpdated,
-    this.isOrganic = false,
     this.orderCount = 0,
-    this.rating = 0.0,
-    this.reviewCount = 0,
   });
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
@@ -66,10 +60,7 @@ class Product {
               : (json['lastUpdated'] != null
                   ? DateTime.parse(json['lastUpdated'])
                   : null),
-      isOrganic: json['is_organic'] ?? json['isOrganic'] ?? false,
       orderCount: json['order_count'] ?? json['orderCount'] ?? 0,
-      rating: (json['rating'] ?? 0).toDouble(),
-      reviewCount: json['review_count'] ?? json['reviewCount'] ?? 0,
     );
   }
 
@@ -128,10 +119,7 @@ class Product {
       'status': _statusToString(status),
       'created_at': createdDate.toIso8601String(),
       'updated_at': lastUpdated?.toIso8601String(),
-      'is_organic': isOrganic,
       'order_count': orderCount,
-      'rating': rating,
-      'review_count': reviewCount,
     };
   }
 
@@ -160,10 +148,7 @@ class Product {
     ProductStatus? status,
     DateTime? createdDate,
     DateTime? lastUpdated,
-    bool? isOrganic,
     int? orderCount,
-    double? rating,
-    int? reviewCount,
   }) {
     return Product(
       id: id ?? this.id,
@@ -178,10 +163,7 @@ class Product {
       status: status ?? this.status,
       createdDate: createdDate ?? this.createdDate,
       lastUpdated: lastUpdated ?? this.lastUpdated,
-      isOrganic: isOrganic ?? this.isOrganic,
       orderCount: orderCount ?? this.orderCount,
-      rating: rating ?? this.rating,
-      reviewCount: reviewCount ?? this.reviewCount,
     );
   }
 

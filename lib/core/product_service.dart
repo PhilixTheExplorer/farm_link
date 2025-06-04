@@ -20,7 +20,6 @@ class ProductService extends ChangeNotifier {
     String? search,
     String? category,
     String? status,
-    bool? isOrganic,
     double? minPrice,
     double? maxPrice,
   }) async {
@@ -34,7 +33,6 @@ class ProductService extends ChangeNotifier {
         search: search,
         category: category,
         status: status,
-        isOrganic: isOrganic,
         minPrice: minPrice,
         maxPrice: maxPrice,
       );
@@ -113,7 +111,16 @@ class ProductService extends ChangeNotifier {
     notifyListeners();
 
     try {
+      print(
+        'ProductService: Adding product with farmer_id: ${product.farmerId}',
+      );
+      print(
+        'ProductService: API service auth token available: ${_apiService.authToken != null}',
+      );
+
       final response = await _apiService.createProduct(product.toJson());
+      print('ProductService: Create product response: $response');
+
       _isLoading = false;
       notifyListeners();
       return response != null && response['success'] == true;
@@ -276,8 +283,6 @@ class ProductService extends ChangeNotifier {
       int totalOrders = 0;
       int availableProducts = 0;
       double totalRevenue = 0.0;
-      double totalRating = 0.0;
-      int reviewCount = 0;
 
       for (final product in products) {
         totalOrders += product.orderCount;
@@ -285,16 +290,11 @@ class ProductService extends ChangeNotifier {
           availableProducts++;
         }
         totalRevenue += product.price * product.orderCount;
-        totalRating += product.rating * product.reviewCount;
-        reviewCount += product.reviewCount;
       }
-
-      double averageRating = reviewCount > 0 ? totalRating / reviewCount : 0.0;
 
       return {
         'productCount': productCount,
         'totalRevenue': totalRevenue,
-        'averageRating': averageRating,
         'totalOrders': totalOrders,
         'availableProducts': availableProducts,
       };
@@ -303,7 +303,6 @@ class ProductService extends ChangeNotifier {
       return {
         'productCount': 0,
         'totalRevenue': 0.0,
-        'averageRating': 0.0,
         'totalOrders': 0,
         'availableProducts': 0,
       };

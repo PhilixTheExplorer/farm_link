@@ -490,7 +490,6 @@ class ApiService {
     String? category,
     String? status,
     String? farmerId,
-    bool? isOrganic,
     double? minPrice,
     double? maxPrice,
   }) async {
@@ -504,7 +503,6 @@ class ApiService {
       if (category != null) queryParams['category'] = category;
       if (status != null) queryParams['status'] = status;
       if (farmerId != null) queryParams['farmer_id'] = farmerId;
-      if (isOrganic != null) queryParams['is_organic'] = isOrganic.toString();
       if (minPrice != null) queryParams['min_price'] = minPrice.toString();
       if (maxPrice != null) queryParams['max_price'] = maxPrice.toString();
 
@@ -660,12 +658,23 @@ class ApiService {
     Map<String, dynamic> productData,
   ) async {
     try {
+      debugPrint('ApiService: Creating product with data: $productData');
+      debugPrint(
+        'ApiService: Auth token: ${_authToken != null ? 'Available' : 'Missing'}',
+      );
+      debugPrint('ApiService: Auth headers: $_authHeaders');
+
       final uri = Uri.parse('$baseUrl/products');
       final response = await http.post(
         uri,
         headers: _authHeaders,
         body: json.encode(productData),
       );
+
+      debugPrint(
+        'ApiService: Create product response status: ${response.statusCode}',
+      );
+      debugPrint('ApiService: Create product response body: ${response.body}');
 
       if (response.statusCode == 201) {
         return json.decode(response.body);

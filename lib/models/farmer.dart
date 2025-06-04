@@ -6,7 +6,6 @@ class Farmer extends User {
   final String? description;
   final int totalSales;
   final bool isVerified;
-  final double? averageRating;
   final int? totalProducts;
 
   Farmer({
@@ -23,7 +22,6 @@ class Farmer extends User {
     this.description,
     this.totalSales = 0,
     this.isVerified = false,
-    this.averageRating,
     this.totalProducts,
   }) : super(role: UserRole.farmer);
 
@@ -48,7 +46,6 @@ class Farmer extends User {
       description: json['description'],
       totalSales: json['total_sales'] ?? json['totalSales'] ?? 0,
       isVerified: json['is_verified'] ?? json['isVerified'] ?? false,
-      averageRating: json['average_rating']?.toDouble(),
       totalProducts: json['total_products'],
     );
   }
@@ -62,7 +59,6 @@ class Farmer extends User {
       'description': description,
       'total_sales': totalSales,
       'is_verified': isVerified,
-      if (averageRating != null) 'average_rating': averageRating,
       if (totalProducts != null) 'total_products': totalProducts,
     });
     return json;
@@ -84,7 +80,6 @@ class Farmer extends User {
     String? description,
     int? totalSales,
     bool? isVerified,
-    double? averageRating,
     int? totalProducts,
   }) {
     return Farmer(
@@ -101,17 +96,12 @@ class Farmer extends User {
       description: description ?? this.description,
       totalSales: totalSales ?? this.totalSales,
       isVerified: isVerified ?? this.isVerified,
-      averageRating: averageRating ?? this.averageRating,
       totalProducts: totalProducts ?? this.totalProducts,
     );
   }
 
   // Helper getters
   String get displayFarmName => farmName ?? 'Farm';
-  String get ratingDisplay =>
-      averageRating != null
-          ? '${averageRating!.toStringAsFixed(1)}⭐'
-          : 'No rating';
   String get verificationStatus => isVerified ? 'Verified' : 'Unverified';
 
   @override

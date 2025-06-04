@@ -161,16 +161,7 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView> {
                                 Icons.shopping_bag,
                                 AppColors.tamarindBrown,
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildStatCard(
-                                'Rating',
-                                '${(_farmerStats['averageRating'] ?? 0.0).toStringAsFixed(1)}⭐',
-                                Icons.star,
-                                AppColors.chilliRed,
-                              ),
-                            ),
+                            ),                          
                           ],
                         ),
                       ],

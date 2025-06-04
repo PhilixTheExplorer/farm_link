@@ -62,12 +62,6 @@ class ProductRepository {
     return stats['totalRevenue'] ?? 0.0;
   }
 
-  // Get farmer's average product rating
-  Future<double> getFarmerAverageRating(String farmerId) async {
-    final stats = await _productService.getFarmerStats(farmerId);
-    return stats['averageRating'] ?? 0.0;
-  }
-
   // Get featured products
   Future<List<Product>> getFeaturedProducts({int limit = 10}) async {
     return await _productService.getFeaturedProducts(limit: limit);
