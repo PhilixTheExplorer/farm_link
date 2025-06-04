@@ -77,7 +77,7 @@ class NavigationService {
       case orderConfirmation:
         return 'Order Confirmed';
       default:
-        return 'FarmLink';
+        return '';
     }
   }
 }

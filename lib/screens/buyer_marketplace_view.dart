@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../components/farm_card.dart';
 import '../components/app_drawer.dart';
 import '../theme/app_colors.dart';
+import '../repositories/product_repository.dart';
+import '../models/product.dart';
 
 class BuyerMarketplaceView extends StatefulWidget {
   const BuyerMarketplaceView({super.key});
@@ -14,74 +16,110 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
   String _selectedCategory = 'All';
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isLoading = true;
+  String? _errorMessage;
+  String _sortOrder = 'none'; // 'none', 'price_asc', 'price_desc'
+  List<Product> _products = [];
+  final ProductRepository _productRepository = ProductRepository();
 
-  // Sample categories
+  // Categories mapped from ProductCategory enum
   final List<String> _categories = [
     'All',
-    'Vegetables',
-    'Fruits',
     'Rice',
+    'Fruits',
+    'Vegetables',
+    'Herbs',
     'Handmade',
-    'Organic',
+    'Dairy',
+    'Meat',
+    'Other',
   ];
 
-  // Sample products
-  final List<Map<String, dynamic>> _products = [
-    {
-      'imageUrl':
-          'https://images.unsplash.com/photo-1603833665858-e61d17a86224?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'title': 'Organic Rice',
-      'price': '120',
-      'description':
-          'Freshly harvested jasmine rice from our farm in Chiang Mai.',
-      'category': 'Rice',
-      'quantity': '5',
-      'unit': 'kg',
-    },
-    {
-      'imageUrl':
-          'https://images.unsplash.com/photo-1518977676601-b53f82aba655?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'title': 'Fresh Mangoes',
-      'price': '80',
-      'description':
-          'Sweet and juicy mangoes, perfect for desserts or eating fresh.',
-      'category': 'Fruits',
-      'quantity': '10',
-      'unit': 'pcs',
-    },
-    {
-      'imageUrl':
-          'https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'title': 'Handmade Basket',
-      'price': '250',
-      'description':
-          'Traditional Thai bamboo basket, handcrafted by local artisans.',
-      'category': 'Handmade',
-      'quantity': '3',
-      'unit': 'pcs',
-    },
-    {
-      'imageUrl':
-          'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'title': 'Fresh Vegetables',
-      'price': '60',
-      'description':
-          'Locally grown vegetables, pesticide-free and harvested daily.',
-      'category': 'Vegetables',
-      'quantity': '2',
-      'unit': 'kg',
-    },
-    {
-      'imageUrl':
-          'https://images.unsplash.com/photo-1597362925123-77861d3fbac7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-      'title': 'Organic Eggs',
-      'price': '45',
-      'description': 'Free-range eggs from our farm in Chiang Rai.',
-      'category': 'Organic',
-      'quantity': '1',
-      'unit': 'dozen',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      final products = await _productRepository.getAllProducts();
+
+      setState(() {
+        _products = products;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Failed to load products: ${e.toString()}';
+      });
+    }
+  }
+
+  Future<void> _refreshProducts() async {
+    await _loadProducts();
+  }
+
+  List<Product> _getFilteredProducts(List<Product> products) {
+    var filtered =
+        products.where((product) {
+          // Category filter
+          final categoryMatch =
+              _selectedCategory == 'All' ||
+              _getCategoryDisplayName(product.category) == _selectedCategory;
+
+          // Search filter
+          final searchMatch =
+              _searchQuery.isEmpty ||
+              product.title.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              ) ||
+              product.description.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              );
+
+          // Only show available products
+          final statusMatch = product.status == ProductStatus.available;
+
+          return categoryMatch && searchMatch && statusMatch;
+        }).toList();
+
+    // Apply sorting
+    if (_sortOrder == 'price_asc') {
+      filtered.sort((a, b) => a.price.compareTo(b.price));
+    } else if (_sortOrder == 'price_desc') {
+      filtered.sort((a, b) => b.price.compareTo(a.price));
+    }
+
+    return filtered;
+  }
+
+  String _getCategoryDisplayName(ProductCategory category) {
+    switch (category) {
+      case ProductCategory.rice:
+        return 'Rice';
+      case ProductCategory.fruits:
+        return 'Fruits';
+      case ProductCategory.vegetables:
+        return 'Vegetables';
+      case ProductCategory.herbs:
+        return 'Herbs';
+      case ProductCategory.handmade:
+        return 'Handmade';
+      case ProductCategory.dairy:
+        return 'Dairy';
+      case ProductCategory.meat:
+        return 'Meat';
+      case ProductCategory.other:
+        return 'Other';
+    }
+  }
 
   @override
   void dispose() {
@@ -93,32 +131,19 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Filter products by category and search query
-    final filteredProducts =
-        _products.where((product) {
-          final categoryMatch =
-              _selectedCategory == 'All' ||
-              product['category'] == _selectedCategory;
-          final searchMatch =
-              _searchQuery.isEmpty ||
-              product['title']!.toLowerCase().contains(
-                _searchQuery.toLowerCase(),
-              ) ||
-              product['description']!.toLowerCase().contains(
-                _searchQuery.toLowerCase(),
-              );
-          return categoryMatch && searchMatch;
-        }).toList();
-
     return Scaffold(
       drawer: AppDrawer(currentRoute: '/buyer-marketplace'),
       appBar: AppBar(
-        title: const Text('FarmLink Marketplace'),
+        title: const Text('Marketplace'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshProducts,
+            tooltip: 'Refresh',
+          ),
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
             onPressed: () {
-              // Navigate to cart
               Navigator.pushNamed(context, '/cart');
             },
           ),
@@ -250,66 +275,42 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
             // Products Grid/List
             Expanded(
               child:
-                  filteredProducts.isEmpty
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _errorMessage != null
                       ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Icon(
-                              Icons.inventory_2_outlined,
+                              Icons.error_outline,
                               size: 64,
                               color: AppColors.palmAshGray,
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No products found',
+                              'Error Loading Products',
                               style: theme.textTheme.titleMedium?.copyWith(
                                 color: AppColors.palmAshGray,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Try selecting a different category',
+                              _errorMessage!,
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: AppColors.palmAshGray,
                               ),
                               textAlign: TextAlign.center,
                             ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _refreshProducts,
+                              child: const Text('Retry'),
+                            ),
                           ],
                         ),
                       )
-                      : GridView.builder(
-                        padding: const EdgeInsets.all(16),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount:
-                              MediaQuery.of(context).size.width > 600 ? 3 : 2,
-                          childAspectRatio: 0.75,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                        ),
-                        itemCount: filteredProducts.length,
-                        itemBuilder: (context, index) {
-                          final product = filteredProducts[index];
-                          return FarmCard(
-                            imageUrl: product['imageUrl']!,
-                            title: product['title']!,
-                            price: product['price']!,
-                            description: product['description']!,
-                            category: product['category']!,
-                            quantity: product['quantity'],
-                            unit: product['unit'],
-                            showDescription: false,
-                            onTap: () {
-                              // Navigate to product detail
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Viewing ${product['title']}'),
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
+                      : _buildProductsList(),
             ),
           ],
         ),
@@ -324,61 +325,196 @@ class _BuyerMarketplaceViewState extends State<BuyerMarketplaceView> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Filter Products',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Sort by Price',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              SizedBox(height: 8),
-              Row(
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        // Sort by price low to high
-                        Navigator.pop(context);
-                      },
-                      child: Text('Low to High'),
+                  Text(
+                    'Filter & Sort Products',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        // Sort by price high to low
-                        Navigator.pop(context);
-                      },
-                      child: Text('High to Low'),
-                    ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Sort by Price',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              _sortOrder = 'price_asc';
+                            });
+                            Navigator.pop(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor:
+                                _sortOrder == 'price_asc'
+                                    ? AppColors.ricePaddyGreen.withOpacity(0.1)
+                                    : null,
+                            side: BorderSide(
+                              color:
+                                  _sortOrder == 'price_asc'
+                                      ? AppColors.ricePaddyGreen
+                                      : AppColors.palmAshGray,
+                            ),
+                          ),
+                          child: Text(
+                            'Low to High',
+                            style: TextStyle(
+                              color:
+                                  _sortOrder == 'price_asc'
+                                      ? AppColors.ricePaddyGreen
+                                      : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              _sortOrder = 'price_desc';
+                            });
+                            Navigator.pop(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor:
+                                _sortOrder == 'price_desc'
+                                    ? AppColors.ricePaddyGreen.withOpacity(0.1)
+                                    : null,
+                            side: BorderSide(
+                              color:
+                                  _sortOrder == 'price_desc'
+                                      ? AppColors.ricePaddyGreen
+                                      : AppColors.palmAshGray,
+                            ),
+                          ),
+                          child: Text(
+                            'High to Low',
+                            style: TextStyle(
+                              color:
+                                  _sortOrder == 'price_desc'
+                                      ? AppColors.ricePaddyGreen
+                                      : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              _sortOrder = 'none';
+                            });
+                            Navigator.pop(context);
+                          },
+                          child: Text('Clear Sort'),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text('Done'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text('Apply Filters'),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
+    );
+  }
+
+  Widget _buildProductsList() {
+    final theme = Theme.of(context);
+    final filteredProducts = _getFilteredProducts(_products);
+
+    if (filteredProducts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.inventory_2_outlined,
+              size: 64,
+              color: AppColors.palmAshGray,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No products found',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: AppColors.palmAshGray,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _searchQuery.isNotEmpty
+                  ? 'Try a different search term'
+                  : 'Try selecting a different category',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.palmAshGray,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refreshProducts,
+      child: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+          childAspectRatio: 0.75,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: filteredProducts.length,
+        itemBuilder: (context, index) {
+          final product = filteredProducts[index];
+          return FarmCard(
+            imageUrl: product.imageUrl,
+            title: product.title,
+            price: product.price.toString(),
+            description: product.description,
+            category: _getCategoryDisplayName(product.category),
+            quantity: product.quantity.toString(),
+            unit: product.unit,
+            showDescription: false,
+            onTap: () {
+              // Navigate to product detail
+              Navigator.pushNamed(
+                context,
+                '/product-detail',
+                arguments: product,
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

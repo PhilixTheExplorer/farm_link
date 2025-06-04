@@ -9,9 +9,10 @@ class ProductService extends ChangeNotifier {
 
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
+  List<Product> _products = [];
 
   bool get isLoading => _isLoading;
-
+  List<Product> get products => _products;
   // Get all products with optional filters
   Future<List<Product>> getAllProducts({
     int page = 1,
@@ -42,6 +43,7 @@ class ProductService extends ChangeNotifier {
         final List<dynamic> productsData = response['data']['products'];
         final products =
             productsData.map((json) => Product.fromJson(json)).toList();
+        _products = products;
         _isLoading = false;
         notifyListeners();
         return products;
