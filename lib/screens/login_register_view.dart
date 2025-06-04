@@ -3,9 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../components/thai_button.dart';
 import '../components/thai_text_field.dart';
 import '../core/theme/app_colors.dart';
-import '../core/router/app_router.dart';
-import '../services/user_service.dart';
-import '../models/user.dart';
+import '../viewmodels/login_register_viewmodel.dart';
+import '../models/auth_models.dart';
 
 class LoginRegisterView extends StatefulWidget {
   const LoginRegisterView({super.key});
@@ -17,111 +16,53 @@ class LoginRegisterView extends StatefulWidget {
 class _LoginRegisterViewState extends State<LoginRegisterView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  final _loginFormKey = GlobalKey<FormState>();
-  final _registerFormKey = GlobalKey<FormState>();
-
-  // Separate controllers for login
-  final _loginEmailController = TextEditingController();
-  final _loginPasswordController = TextEditingController();
-
-  // Separate controllers for register
-  final _registerEmailController = TextEditingController();
-  final _registerPasswordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-
-  String _selectedRole = 'Farmer';
-  bool _isLoginPasswordVisible = false;
-  bool _isRegisterPasswordVisible = false;
-  bool _isLoading = false;
+  late LoginRegisterViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _viewModel = LoginRegisterViewModel();
+
+    // Listen to view model changes
+    _viewModel.addListener(_onViewModelChanged);
   }
 
   @override
   void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
+    _viewModel.dispose();
     _tabController.dispose();
-
-    // Dispose all controllers
-    _loginEmailController.dispose();
-    _loginPasswordController.dispose();
-    _registerEmailController.dispose();
-    _registerPasswordController.dispose();
-    _confirmPasswordController.dispose();
-
     super.dispose();
   }
 
-  void _toggleLoginPasswordVisibility() {
-    setState(() => _isLoginPasswordVisible = !_isLoginPasswordVisible);
-  }
+  void _onViewModelChanged() {
+    if (!mounted) return;
 
-  void _toggleRegisterPasswordVisibility() {
-    setState(() => _isRegisterPasswordVisible = !_isRegisterPasswordVisible);
+    // Handle success navigation
+    if (_viewModel.viewState.state == AuthState.success) {
+      final destination =
+          _tabController.index == 0
+              ? _viewModel.getNavigationDestination()
+              : _viewModel.getRegistrationDestination();
+      context.go(destination);
+    }
+
+    // Handle error messages
+    if (_viewModel.viewState.state == AuthState.error) {
+      _showErrorMessage(
+        _viewModel.viewState.errorMessage ?? 'An error occurred',
+      );
+    }
   }
 
   void _handleSubmit() async {
-    final formKey =
-        _tabController.index == 0 ? _loginFormKey : _registerFormKey;
+    _viewModel.clearError();
 
-    if (formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-
-      final email =
-          _tabController.index == 0
-              ? _loginEmailController.text
-              : _registerEmailController.text;
-      final password =
-          _tabController.index == 0
-              ? _loginPasswordController.text
-              : _registerPasswordController.text;
-
-      if (_tabController.index == 0) {
-        // Login
-        final result = await UserService().login(email, password);
-        setState(() => _isLoading = false);
-
-        if (result.isSuccess) {
-          // Navigate based on detected role
-          final userService = UserService();
-          final destination =
-              userService.currentUserRole == UserRole.farmer
-                  ? AppRoutes.farmerDashboard
-                  : AppRoutes.buyerMarketplace;
-
-          context.go(destination);
-        } else {
-          _showErrorMessage(
-            result.errorMessage ??
-                'Login failed. Please check your credentials.',
-          );
-        }
-      } else {
-        // Register - collect additional info
-        final result = await UserService().register(
-          email,
-          password,
-          _selectedRole.toLowerCase(),
-        );
-        setState(() => _isLoading = false);
-
-        if (result.isSuccess) {
-          // Navigate based on selected role
-          final destination =
-              _selectedRole == 'Farmer'
-                  ? AppRoutes.farmerDashboard
-                  : AppRoutes.buyerMarketplace;
-
-          context.go(destination);
-        } else {
-          _showErrorMessage(
-            result.errorMessage ?? 'Registration failed. Please try again.',
-          );
-        }
-      }
+    if (_tabController.index == 0) {
+      await _viewModel.login();
+    } else {
+      await _viewModel.register();
     }
   }
 
@@ -137,10 +78,8 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      resizeToAvoidBottomInset: true, // Helps with keyboard appearance
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -151,7 +90,6 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            // Make content scrollable
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
@@ -175,181 +113,7 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                     height: 380,
                     child: TabBarView(
                       controller: _tabController,
-                      children: [
-                        // Login Form
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Form(
-                            key: _loginFormKey,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Login form fields unchanged
-                                ThaiTextField(
-                                  label: 'Email',
-                                  hintText: 'Enter your email',
-                                  controller: _loginEmailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  prefixIcon: Icons.email_outlined,
-                                  validator:
-                                      (value) =>
-                                          value == null || value.isEmpty
-                                              ? 'Please enter your email'
-                                              : null,
-                                ),
-                                const SizedBox(height: 10),
-                                ThaiTextField(
-                                  label: 'Password',
-                                  hintText: 'Enter your password',
-                                  controller: _loginPasswordController,
-                                  obscureText: !_isLoginPasswordVisible,
-                                  prefixIcon: Icons.lock_outline,
-                                  suffixIcon:
-                                      _isLoginPasswordVisible
-                                          ? Icons.visibility_outlined
-                                          : Icons.visibility_off_outlined,
-                                  onSuffixIconPressed:
-                                      _toggleLoginPasswordVisibility,
-                                  validator:
-                                      (value) =>
-                                          value == null || value.isEmpty
-                                              ? 'Please enter your password'
-                                              : null,
-                                ),
-                                const SizedBox(height: 20),
-                                ThaiButton(
-                                  label: 'Login',
-                                  onPressed: _handleSubmit,
-                                  isLoading: _isLoading,
-                                  isFullWidth: true,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        // Register Form - structure remains the same
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Form(
-                            key: _registerFormKey,
-                            child: SingleChildScrollView(
-                              // Extra scroll for registration
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Registration form fields - unchanged
-                                  ThaiTextField(
-                                    label: 'Email',
-                                    hintText: 'Enter your email',
-                                    controller: _registerEmailController,
-                                    keyboardType: TextInputType.emailAddress,
-                                    prefixIcon: Icons.email_outlined,
-                                    validator:
-                                        (value) =>
-                                            value == null || value.isEmpty
-                                                ? 'Please enter your email'
-                                                : null,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  ThaiTextField(
-                                    label: 'Password',
-                                    hintText: 'Enter your password',
-                                    controller: _registerPasswordController,
-                                    obscureText: !_isRegisterPasswordVisible,
-                                    prefixIcon: Icons.lock_outline,
-                                    suffixIcon:
-                                        _isRegisterPasswordVisible
-                                            ? Icons.visibility_outlined
-                                            : Icons.visibility_off_outlined,
-                                    onSuffixIconPressed:
-                                        _toggleRegisterPasswordVisibility,
-                                    validator:
-                                        (value) =>
-                                            value == null || value.isEmpty
-                                                ? 'Please enter your password'
-                                                : null,
-                                  ),
-                                  const SizedBox(height: 10),
-                                  ThaiTextField(
-                                    label: 'Confirm Password',
-                                    hintText: 'Confirm your password',
-                                    controller: _confirmPasswordController,
-                                    obscureText: !_isRegisterPasswordVisible,
-                                    prefixIcon: Icons.lock_outline,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please confirm your password';
-                                      }
-                                      if (value !=
-                                          _registerPasswordController.text) {
-                                        return 'Passwords do not match';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 10),
-
-                                  // Role selection
-                                  Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 4),
-                                        child: Text(
-                                          'I am a:',
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: RadioListTile<String>(
-                                          title: const Text('Farmer'),
-                                          value: 'Farmer',
-                                          groupValue: _selectedRole,
-                                          onChanged:
-                                              (value) => setState(
-                                                () => _selectedRole = value!,
-                                              ),
-                                          activeColor: AppColors.ricePaddyGreen,
-                                          contentPadding: EdgeInsets.zero,
-                                          dense: true,
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: RadioListTile<String>(
-                                          title: const Text('Buyer'),
-                                          value: 'Buyer',
-                                          groupValue: _selectedRole,
-                                          onChanged:
-                                              (value) => setState(
-                                                () => _selectedRole = value!,
-                                              ),
-                                          activeColor: AppColors.ricePaddyGreen,
-                                          contentPadding: EdgeInsets.zero,
-                                          dense: true,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-                                  const SizedBox(height: 20),
-                                  ThaiButton(
-                                    label: 'Register',
-                                    onPressed: _handleSubmit,
-                                    isLoading: _isLoading,
-                                    isFullWidth: true,
-                                    variant: ThaiButtonVariant.secondary,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      children: [_buildLoginForm(), _buildRegisterForm()],
                     ),
                   ),
                 ],
@@ -358,6 +122,178 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLoginForm() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Form(
+        key: _viewModel.loginFormKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ThaiTextField(
+              label: 'Email',
+              hintText: 'Enter your email',
+              controller: _viewModel.loginEmailController,
+              keyboardType: TextInputType.emailAddress,
+              prefixIcon: Icons.email_outlined,
+              validator: _viewModel.validateLoginEmail,
+            ),
+            const SizedBox(height: 10),
+            AnimatedBuilder(
+              animation: _viewModel,
+              builder: (context, child) {
+                return ThaiTextField(
+                  label: 'Password',
+                  hintText: 'Enter your password',
+                  controller: _viewModel.loginPasswordController,
+                  obscureText: !_viewModel.isLoginPasswordVisible,
+                  prefixIcon: Icons.lock_outline,
+                  suffixIcon:
+                      _viewModel.isLoginPasswordVisible
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                  onSuffixIconPressed: _viewModel.toggleLoginPasswordVisibility,
+                  validator: _viewModel.validateLoginPassword,
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            AnimatedBuilder(
+              animation: _viewModel,
+              builder: (context, child) {
+                return ThaiButton(
+                  label: 'Login',
+                  onPressed: _handleSubmit,
+                  isLoading: _viewModel.isLoading,
+                  isFullWidth: true,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRegisterForm() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Form(
+        key: _viewModel.registerFormKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ThaiTextField(
+                label: 'Email',
+                hintText: 'Enter your email',
+                controller: _viewModel.registerEmailController,
+                keyboardType: TextInputType.emailAddress,
+                prefixIcon: Icons.email_outlined,
+                validator: _viewModel.validateRegisterEmail,
+              ),
+              const SizedBox(height: 10),
+              AnimatedBuilder(
+                animation: _viewModel,
+                builder: (context, child) {
+                  return ThaiTextField(
+                    label: 'Password',
+                    hintText: 'Enter your password',
+                    controller: _viewModel.registerPasswordController,
+                    obscureText: !_viewModel.isRegisterPasswordVisible,
+                    prefixIcon: Icons.lock_outline,
+                    suffixIcon:
+                        _viewModel.isRegisterPasswordVisible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                    onSuffixIconPressed:
+                        _viewModel.toggleRegisterPasswordVisibility,
+                    validator: _viewModel.validateRegisterPassword,
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              AnimatedBuilder(
+                animation: _viewModel,
+                builder: (context, child) {
+                  return ThaiTextField(
+                    label: 'Confirm Password',
+                    hintText: 'Confirm your password',
+                    controller: _viewModel.confirmPasswordController,
+                    obscureText: !_viewModel.isRegisterPasswordVisible,
+                    prefixIcon: Icons.lock_outline,
+                    validator: _viewModel.validateConfirmPassword,
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              _buildRoleSelector(),
+              const SizedBox(height: 20),
+              AnimatedBuilder(
+                animation: _viewModel,
+                builder: (context, child) {
+                  return ThaiButton(
+                    label: 'Register',
+                    onPressed: _handleSubmit,
+                    isLoading: _viewModel.isLoading,
+                    isFullWidth: true,
+                    variant: ThaiButtonVariant.secondary,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleSelector() {
+    final theme = Theme.of(context);
+
+    return AnimatedBuilder(
+      animation: _viewModel,
+      builder: (context, child) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Text(
+                'I am a:',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Expanded(
+              child: RadioListTile<String>(
+                title: const Text('Farmer'),
+                value: 'Farmer',
+                groupValue: _viewModel.selectedRole,
+                onChanged: (value) => _viewModel.setSelectedRole(value!),
+                activeColor: AppColors.ricePaddyGreen,
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+              ),
+            ),
+            Expanded(
+              child: RadioListTile<String>(
+                title: const Text('Buyer'),
+                value: 'Buyer',
+                groupValue: _viewModel.selectedRole,
+                onChanged: (value) => _viewModel.setSelectedRole(value!),
+                activeColor: AppColors.ricePaddyGreen,
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
