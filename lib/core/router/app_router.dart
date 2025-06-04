@@ -12,6 +12,7 @@ import '../../screens/impact_tracker_view.dart';
 import '../../screens/profile_settings_view.dart';
 import '../../services/user_service.dart';
 import '../../models/user.dart';
+import '../../models/product.dart';
 
 /// FarmLink App Router Configuration using GoRouter
 class AppRouter {
@@ -56,14 +57,12 @@ class AppRouter {
         path: '/product-upload',
         name: 'product-upload',
         builder: (context, state) => const ProductUploadView(),
-      ),
-
-      // Product Detail Route (with optional product parameter)
+      ), // Product Detail Route (with optional product parameter)
       GoRoute(
         path: '/product-detail',
         name: 'product-detail',
         builder: (context, state) {
-          final product = state.extra as Map<String, dynamic>?;
+          final product = state.extra as Product?;
           return ProductDetailView(product: product);
         },
       ),

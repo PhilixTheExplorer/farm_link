@@ -3,9 +3,10 @@ import 'package:go_router/go_router.dart';
 import '../components/thai_button.dart';
 import '../core/theme/app_colors.dart';
 import '../core/router/app_router.dart';
+import '../models/product.dart';
 
 class ProductDetailView extends StatefulWidget {
-  final Map<String, dynamic>? product;
+  final Product? product;
 
   const ProductDetailView({super.key, this.product});
 
@@ -18,27 +19,27 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   bool _isPurchased = false;
 
   // Sample product data if none provided
-  final Map<String, dynamic> _defaultProduct = {
-    'imageUrl':
-        'https://images.unsplash.com/photo-1603833665858-e61d17a86224?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-    'title': 'Organic Rice',
-    'price': '120',
-    'description':
+  final Product _defaultProduct = Product(
+    id: 'sample_1',
+    farmerId: 'farmer_1',
+    title: 'Organic Rice',
+    description:
         'Freshly harvested jasmine rice from our farm in Chiang Mai. This premium quality rice is grown using traditional farming methods without chemical pesticides or fertilizers. Perfect for everyday meals or special occasions.',
-    'category': 'Rice',
-    'stock': 50,
-    'farmer': {
-      'name': 'Somchai',
-      'location': 'Chiang Mai',
-      'phone': '+66 81 234 5678',
-      'email': 'somchai@farmlink.com',
-    },
-  };
+    price: 120.0,
+    category: ProductCategory.rice,
+    quantity: 50,
+    unit: 'kg',
+    imageUrl:
+        'https://images.unsplash.com/photo-1603833665858-e61d17a86224?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
+    status: ProductStatus.available,
+    createdDate: DateTime.now(),
+    orderCount: 0,
+  );
 
-  Map<String, dynamic> get _product => widget.product ?? _defaultProduct;
+  Product get _product => widget.product ?? _defaultProduct;
 
   void _incrementQuantity() {
-    if (_quantity < _product['stock']) {
+    if (_quantity < _product.quantity) {
       setState(() {
         _quantity++;
       });
@@ -57,7 +58,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     // Simulate adding to cart
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('${_quantity}x ${_product['title']} added to cart'),
+        content: Text('${_quantity}x ${_product.title} added to cart'),
         backgroundColor: AppColors.ricePaddyGreen,
         action: SnackBarAction(
           label: 'VIEW CART',
@@ -79,7 +80,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subtotal = int.parse(_product['price']) * _quantity;
+    final subtotal = _product.price * _quantity;
 
     return Scaffold(
       body: CustomScrollView(
@@ -89,10 +90,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
             expandedHeight: 300,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: Image.network(
-                _product['imageUrl'],
-                fit: BoxFit.cover,
-              ),
+              background: Image.network(_product.imageUrl, fit: BoxFit.cover),
             ),
             leading: IconButton(
               icon: Container(
@@ -144,7 +142,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                 children: [
                   // Category Chip
                   Chip(
-                    label: Text(_product['category']),
+                    label: Text(_product.categoryDisplayName),
                     backgroundColor: AppColors.ricePaddyGreen.withOpacity(0.2),
                     labelStyle: theme.textTheme.labelSmall?.copyWith(
                       color: AppColors.ricePaddyGreen,
@@ -162,14 +160,14 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     children: [
                       Expanded(
                         child: Text(
-                          _product['title'],
+                          _product.title,
                           style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       Text(
-                        '฿${_product['price']}',
+                        '฿${_product.price.toStringAsFixed(0)}',
                         style: theme.textTheme.headlineSmall?.copyWith(
                           color: AppColors.tamarindBrown,
                           fontWeight: FontWeight.bold,
@@ -190,7 +188,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${_product['stock']} available',
+                        '${_product.quantity} ${_product.unit} available',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppColors.palmAshGray,
                         ),
@@ -208,10 +206,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    _product['description'],
-                    style: theme.textTheme.bodyMedium,
-                  ),
+                  Text(_product.description, style: theme.textTheme.bodyMedium),
 
                   const SizedBox(height: 24),
 
@@ -249,14 +244,14 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      _product['farmer']['name'],
+                                      'Farmer Info',
                                       style: theme.textTheme.titleMedium
                                           ?.copyWith(
                                             fontWeight: FontWeight.bold,
                                           ),
                                     ),
                                     Text(
-                                      _product['farmer']['location'],
+                                      'Farmer ID: ${_product.farmerId}',
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             color: AppColors.palmAshGray,
@@ -275,7 +270,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                   icon: const Icon(Icons.phone),
                                   label: const Text('Call'),
                                   onPressed: () {
-                                    // Call farmer
+                                    // Call farmer - would need farmer service
                                   },
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppColors.tamarindBrown,
@@ -294,7 +289,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                   icon: const Icon(Icons.email),
                                   label: const Text('Email'),
                                   onPressed: () {
-                                    // Email farmer
+                                    // Email farmer - would need farmer service
                                   },
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppColors.tamarindBrown,
