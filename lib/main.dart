@@ -1,8 +1,8 @@
 import 'package:farm_link/screens/home_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'core/navigation_service.dart';
-import 'theme/app_theme.dart';
+import 'services/navigation_service.dart';
+import 'core/theme/app_theme.dart';
 import 'screens/login_register_view.dart';
 import 'screens/farmer_dashboard_view.dart';
 import 'screens/buyer_marketplace_view.dart';

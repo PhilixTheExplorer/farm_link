@@ -1,5 +1,5 @@
 import '../models/product.dart';
-import '../core/product_service.dart';
+import '../services/product_service.dart';
 
 class ProductRepository {
   static final ProductRepository _instance = ProductRepository._internal();

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../components/farm_card.dart';
 import '../components/app_drawer.dart';
-import '../theme/app_colors.dart';
+import '../core/theme/app_colors.dart';
 import '../repositories/product_repository.dart';
 import '../models/product.dart';
 

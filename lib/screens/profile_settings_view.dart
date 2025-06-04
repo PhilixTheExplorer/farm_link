@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../components/thai_button.dart';
 import '../components/app_drawer.dart';
-import '../theme/app_colors.dart';
-import '../core/user_service.dart';
+import '../core/theme/app_colors.dart';
+import '../services/user_service.dart';
 import '../models/user.dart';
 
 class ProfileSettingsView extends StatefulWidget {

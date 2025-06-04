@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../components/app_drawer.dart';
-import '../theme/app_colors.dart';
+import '../core/theme/app_colors.dart';
 
 class ImpactTrackerView extends StatelessWidget {
   const ImpactTrackerView({Key? key}) : super(key: key);

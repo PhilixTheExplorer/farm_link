@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import '../core/theme/app_colors.dart';
 import '../models/product.dart';
 
 class FarmCard extends StatelessWidget {

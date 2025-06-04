@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../components/farm_card.dart';
 import '../components/app_drawer.dart';
-import '../theme/app_colors.dart';
-import '../core/user_service.dart';
-import '../core/product_service.dart';
+import '../core/theme/app_colors.dart';
+import '../services/user_service.dart';
+import '../services/product_service.dart';
 import '../models/product.dart';
 
 class FarmerDashboardView extends StatefulWidget {

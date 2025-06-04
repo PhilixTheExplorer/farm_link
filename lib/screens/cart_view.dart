@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../components/thai_button.dart';
 import '../components/thai_text_field.dart';
 import '../components/app_drawer.dart';
-import '../theme/app_colors.dart';
+import '../core/theme/app_colors.dart';
 
 class CartView extends StatefulWidget {
   const CartView({super.key});
