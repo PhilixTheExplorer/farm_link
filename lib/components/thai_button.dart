@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 
-enum ThaiButtonVariant {
-  primary,
-  secondary,
-  accent,
-}
+enum ThaiButtonVariant { primary, secondary, accent }
 
 class ThaiButton extends StatelessWidget {
   final String label;
@@ -28,11 +24,11 @@ class ThaiButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Determine button colors based on variant
     Color backgroundColor;
     Color textColor;
-    
+
     switch (variant) {
       case ThaiButtonVariant.primary:
         backgroundColor = AppColors.tamarindBrown;
@@ -47,7 +43,7 @@ class ThaiButton extends StatelessWidget {
         textColor = Colors.white;
         break;
     }
-    
+
     return SizedBox(
       width: isFullWidth ? double.infinity : null,
       child: ElevatedButton(
@@ -55,37 +51,43 @@ class ThaiButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: textColor,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.0),
           ),
         ),
-        child: isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(textColor),
-                ),
-              )
-            : Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: 18),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    label,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: textColor,
-                      fontWeight: FontWeight.bold,
-                    ),
+        child:
+            isLoading
+                ? SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(textColor),
                   ),
-                ],
-              ),
+                )
+                : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null) ...[
+                      Icon(icon, size: 18),
+                      const SizedBox(width: 8),
+                    ],
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: textColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
       ),
     );
   }

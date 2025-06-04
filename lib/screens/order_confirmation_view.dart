@@ -208,6 +208,8 @@ class OrderConfirmationView extends StatelessWidget {
                                                   ?.copyWith(
                                                     fontWeight: FontWeight.bold,
                                                   ),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 2,
                                             ),
                                             Text(
                                               'From ${item['farmer']['name']}',
@@ -216,6 +218,7 @@ class OrderConfirmationView extends StatelessWidget {
                                                     color:
                                                         AppColors.palmAshGray,
                                                   ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ],
                                         ),
@@ -287,6 +290,7 @@ class OrderConfirmationView extends StatelessWidget {
                                               ?.copyWith(
                                                 fontWeight: FontWeight.bold,
                                               ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                         Text(
                                           'For ${item['title']}',
@@ -294,6 +298,7 @@ class OrderConfirmationView extends StatelessWidget {
                                               ?.copyWith(
                                                 color: AppColors.palmAshGray,
                                               ),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ],
                                     ),
@@ -312,9 +317,12 @@ class OrderConfirmationView extends StatelessWidget {
                                     color: AppColors.palmAshGray,
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    farmer['location'],
-                                    style: theme.textTheme.bodyMedium,
+                                  Expanded(
+                                    child: Text(
+                                      farmer['location'],
+                                      style: theme.textTheme.bodyMedium,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -327,9 +335,12 @@ class OrderConfirmationView extends StatelessWidget {
                                     color: AppColors.palmAshGray,
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    farmer['phone'],
-                                    style: theme.textTheme.bodyMedium,
+                                  Expanded(
+                                    child: Text(
+                                      farmer['phone'],
+                                      style: theme.textTheme.bodyMedium,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -342,9 +353,12 @@ class OrderConfirmationView extends StatelessWidget {
                                     color: AppColors.palmAshGray,
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(
-                                    farmer['email'],
-                                    style: theme.textTheme.bodyMedium,
+                                  Expanded(
+                                    child: Text(
+                                      farmer['email'],
+                                      style: theme.textTheme.bodyMedium,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -356,7 +370,7 @@ class OrderConfirmationView extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: OutlinedButton.icon(
-                                      icon: const Icon(Icons.phone),
+                                      icon: const Icon(Icons.phone, size: 16),
                                       label: const Text('Call'),
                                       onPressed: () {
                                         // Call farmer
@@ -372,13 +386,17 @@ class OrderConfirmationView extends StatelessWidget {
                                             16,
                                           ),
                                         ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                          horizontal: 12,
+                                        ),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: OutlinedButton.icon(
-                                      icon: const Icon(Icons.email),
+                                      icon: const Icon(Icons.email, size: 16),
                                       label: const Text('Email'),
                                       onPressed: () {
                                         // Email farmer
@@ -393,6 +411,10 @@ class OrderConfirmationView extends StatelessWidget {
                                           borderRadius: BorderRadius.circular(
                                             16,
                                           ),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                          horizontal: 12,
                                         ),
                                       ),
                                     ),
@@ -467,22 +489,28 @@ class OrderConfirmationView extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
-                      icon: const Icon(Icons.receipt_long),
-                      label: const Text('View Orders'),
+                      icon: const Icon(Icons.receipt_long, size: 16),
+                      label: const Text(
+                        'View Orders',
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       onPressed: () {
                         // Navigate to orders
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.tamarindBrown,
                         side: const BorderSide(color: AppColors.tamarindBrown),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: ThaiButton(
                       label: 'Continue Shopping',
