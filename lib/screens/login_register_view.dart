@@ -79,7 +79,7 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -110,7 +110,7 @@ class _LoginRegisterViewState extends State<LoginRegisterView>
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
-                    height: 380,
+                    height: 460,
                     child: TabBarView(
                       controller: _tabController,
                       children: [_buildLoginForm(), _buildRegisterForm()],
