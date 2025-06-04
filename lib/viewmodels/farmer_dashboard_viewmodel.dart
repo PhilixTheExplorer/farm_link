@@ -187,11 +187,6 @@ class FarmerDashboardViewModel extends ChangeNotifier {
     debugPrint('Product uploaded successfully, refreshing dashboard...');
     await refresh();
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
 
 // Enum for product sorting

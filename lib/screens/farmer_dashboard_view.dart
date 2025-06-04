@@ -35,7 +35,6 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView>
 
   @override
   void dispose() {
-    _viewModel.dispose();
     super.dispose();
   }
 
