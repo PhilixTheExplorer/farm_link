@@ -7,6 +7,7 @@ import '../services/product_service.dart';
 import '../services/user_service.dart';
 import '../models/product.dart';
 import '../models/user.dart';
+import '../viewmodels/farmer_dashboard_viewmodel.dart';
 
 class ProductUploadView extends StatefulWidget {
   const ProductUploadView({super.key});
@@ -190,7 +191,22 @@ class _ProductUploadViewState extends State<ProductUploadView> {
             ),
           );
 
+          // Clear form
+          _nameController.clear();
+          _priceController.clear();
+          _descriptionController.clear();
+          _quantityController.clear();
+          setState(() {
+            _imageUrl = null;
+            _selectedCategory = 'vegetables';
+            _selectedQuantityUnit = 'pcs';
+          });
+
+          // Notify the dashboard to refresh
+          FarmerDashboardViewModel.notifyProductUploaded();
+
           // Navigate back to farmer dashboard
+          // The dashboard will automatically refresh when this screen is popped
           context.pop();
         } else {
           // Show error message
