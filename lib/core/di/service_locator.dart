@@ -4,6 +4,7 @@ import '../../services/user_service.dart';
 import '../../services/product_service.dart';
 import '../../services/farmer_service.dart';
 import '../../services/buyer_service.dart';
+import '../../services/cart_service.dart';
 import '../../repositories/user_repository.dart';
 import '../../repositories/product_repository.dart';
 import '../../repositories/farmer_repository.dart';
@@ -25,13 +26,13 @@ Future<void> setupServiceLocator() async {
   serviceLocator.registerLazySingleton<BuyerRepository>(
     () => BuyerRepository(),
   );
-
   // Register services (singletons)
   serviceLocator.registerLazySingleton<ApiService>(() => ApiService());
   serviceLocator.registerLazySingleton<UserService>(() => UserService());
   serviceLocator.registerLazySingleton<ProductService>(() => ProductService());
   serviceLocator.registerLazySingleton<FarmerService>(() => FarmerService());
   serviceLocator.registerLazySingleton<BuyerService>(() => BuyerService());
+  serviceLocator.registerLazySingleton<CartService>(() => CartService());
 
   // Register view models (singletons)
   serviceLocator.registerLazySingleton<FarmerDashboardViewModel>(

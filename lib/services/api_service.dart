@@ -758,8 +758,8 @@ class ApiService {
   // CART MANAGEMENT ENDPOINTS
   // =================================================================
 
-  /// Get cart items (Buyer only)
-  Future<Map<String, dynamic>?> getCartItems() async {
+  /// Get cart items
+  Future<Map<String, dynamic>?> getCart() async {
     try {
       final uri = Uri.parse('$baseUrl/cart');
       final response = await http.get(uri, headers: _authHeaders);
@@ -769,36 +769,61 @@ class ApiService {
       }
       return null;
     } catch (e) {
-      debugPrint('Get cart items error: $e');
+      debugPrint('Get cart error: $e');
       return null;
     }
   }
 
-  /// Add item to cart (Buyer only)
+  /// Add item to cart
   Future<Map<String, dynamic>?> addToCart(
     String productId,
     int quantity,
   ) async {
     try {
-      final uri = Uri.parse('$baseUrl/cart/items');
-      final response = await http.post(
-        uri,
-        headers: _authHeaders,
-        body: json.encode({'product_id': productId, 'quantity': quantity}),
-      );
+      debugPrint('API addToCart: productId=$productId, quantity=$quantity');
+      debugPrint('Using headers: $_authHeaders');
 
-      if (response.statusCode == 201) {
-        return json.decode(response.body);
+      final uri = Uri.parse('$baseUrl/cart/items');
+      debugPrint('POST request to: $uri');
+
+      final body = json.encode({'product_id': productId, 'quantity': quantity});
+      debugPrint('Request body: $body');
+
+      final response = await http.post(uri, headers: _authHeaders, body: body);
+
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final responseData = json.decode(response.body);
+        debugPrint('Parsed response: $responseData');
+        return responseData;
+      } else {
+        debugPrint(
+          'API error - Status: ${response.statusCode}, Body: ${response.body}',
+        );
+        // Try to parse error response
+        try {
+          final errorData = json.decode(response.body);
+          return errorData;
+        } catch (e) {
+          return {
+            'success': false,
+            'message': 'HTTP ${response.statusCode}: ${response.body}',
+          };
+        }
       }
-      return null;
     } catch (e) {
       debugPrint('Add to cart error: $e');
-      return null;
+      return {'success': false, 'message': 'Network error: ${e.toString()}'};
     }
   }
 
-  /// Update cart item quantity (Buyer only)
-  Future<bool> updateCartItemQuantity(String itemId, int quantity) async {
+  /// Update cart item quantity
+  Future<Map<String, dynamic>?> updateCartItem(
+    String itemId,
+    int quantity,
+  ) async {
     try {
       final uri = Uri.parse('$baseUrl/cart/items/$itemId');
       final response = await http.put(
@@ -807,40 +832,30 @@ class ApiService {
         body: json.encode({'quantity': quantity}),
       );
 
-      return response.statusCode == 200;
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return json.decode(response.body);
+      }
+      return null;
     } catch (e) {
-      debugPrint('Update cart item quantity error: $e');
-      return false;
+      debugPrint('Update cart item error: $e');
+      return null;
     }
   }
 
-  /// Remove item from cart (Buyer only)
+  /// Remove item from cart
   Future<bool> removeFromCart(String itemId) async {
     try {
       final uri = Uri.parse('$baseUrl/cart/items/$itemId');
       final response = await http.delete(uri, headers: _authHeaders);
 
-      return response.statusCode == 200;
+      return response.statusCode >= 200 && response.statusCode < 300;
     } catch (e) {
       debugPrint('Remove from cart error: $e');
       return false;
     }
   }
 
-  /// Clear cart (Buyer only)
-  Future<bool> clearCart() async {
-    try {
-      final uri = Uri.parse('$baseUrl/cart/clear');
-      final response = await http.delete(uri, headers: _authHeaders);
-
-      return response.statusCode == 200;
-    } catch (e) {
-      debugPrint('Clear cart error: $e');
-      return false;
-    }
-  }
-
-  /// Get cart summary (Buyer only)
+  /// Get cart summary
   Future<Map<String, dynamic>?> getCartSummary() async {
     try {
       final uri = Uri.parse('$baseUrl/cart/summary');
@@ -853,6 +868,19 @@ class ApiService {
     } catch (e) {
       debugPrint('Get cart summary error: $e');
       return null;
+    }
+  }
+
+  /// Clear entire cart
+  Future<bool> clearCart() async {
+    try {
+      final uri = Uri.parse('$baseUrl/cart/clear');
+      final response = await http.delete(uri, headers: _authHeaders);
+
+      return response.statusCode >= 200 && response.statusCode < 300;
+    } catch (e) {
+      debugPrint('Clear cart error: $e');
+      return false;
     }
   }
 

@@ -5,8 +5,9 @@ import '../components/farm_card.dart';
 import '../components/app_drawer.dart';
 import '../core/theme/app_colors.dart';
 import '../core/router/app_router.dart';
-import '../models/product.dart';
 import '../viewmodels/buyer_marketplace_viewmodel.dart';
+import '../services/cart_service.dart';
+import '../core/di/service_locator.dart';
 
 class BuyerMarketplaceView extends ConsumerStatefulWidget {
   const BuyerMarketplaceView({super.key});
@@ -18,6 +19,13 @@ class BuyerMarketplaceView extends ConsumerStatefulWidget {
 
 class _BuyerMarketplaceViewState extends ConsumerState<BuyerMarketplaceView> {
   final TextEditingController _searchController = TextEditingController();
+  late final CartService _cartService;
+
+  @override
+  void initState() {
+    super.initState();
+    _cartService = serviceLocator<CartService>();
+  }
 
   @override
   void dispose() {
@@ -46,10 +54,44 @@ class _BuyerMarketplaceViewState extends ConsumerState<BuyerMarketplaceView> {
             onPressed: () => notifier.refreshProducts(),
             tooltip: 'Refresh',
           ),
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () {
-              context.push(AppRoutes.cart);
+          ListenableBuilder(
+            listenable: _cartService,
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.shopping_cart_outlined),
+                    onPressed: () {
+                      context.push(AppRoutes.cart);
+                    },
+                  ),
+                  if (_cartService.itemCount > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: AppColors.chilliRed,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '${_cartService.itemCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
             },
           ),
         ],

@@ -62,7 +62,51 @@ class Product {
                   : null),
       orderCount: json['order_count'] ?? json['orderCount'] ?? 0,
     );
+  } // Factory method for cart API response format
+  factory Product.fromCartJson(Map<String, dynamic> json) {
+    final farmerUser = json['farmer_user'] ?? {};
+    final farmers = farmerUser['farmers'] ?? {};
+
+    final product = Product(
+      id: json['id'],
+      farmerId: farmerUser['id'] ?? '',
+      title: json['title'],
+      description: json['description'] ?? '',
+      price: double.parse(json['price'].toString()),
+      category: _parseCategoryFromString(json['category']),
+      quantity: json['quantity'] ?? 0,
+      unit: json['unit'] ?? 'pcs',
+      imageUrl: json['image_url'] ?? '',
+      status: _parseStatusFromString(json['status']),
+      createdDate: DateTime.parse(
+        json['created_at'] ?? DateTime.now().toIso8601String(),
+      ),
+      lastUpdated:
+          json['updated_at'] != null
+              ? DateTime.parse(json['updated_at'])
+              : null,
+      orderCount: json['order_count'] ?? 0,
+    );
+
+    // Set farmer info from the cart response
+    product.setFarmerInfo(farmerUser['name'], farmers['farm_name']);
+
+    return product;
   }
+
+  // Store farmer info for cart items
+  String? _farmerName;
+  String? _farmName;
+
+  // Setters for farmer info (used when creating from cart JSON)
+  void setFarmerInfo(String? farmerName, String? farmName) {
+    _farmerName = farmerName;
+    _farmName = farmName;
+  }
+
+  // Getters for farmer info
+  String get farmerName => _farmerName ?? 'Unknown Farmer';
+  String get farmName => _farmName ?? 'Unknown Farm';
 
   // Helper method to parse category from string
   static ProductCategory _parseCategoryFromString(String? category) {

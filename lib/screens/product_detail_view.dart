@@ -4,6 +4,9 @@ import '../components/thai_button.dart';
 import '../core/theme/app_colors.dart';
 import '../core/router/app_router.dart';
 import '../models/product.dart';
+import '../services/cart_service.dart';
+import '../services/api_service.dart';
+import '../core/di/service_locator.dart';
 
 class ProductDetailView extends StatefulWidget {
   final Product? product;
@@ -17,6 +20,14 @@ class ProductDetailView extends StatefulWidget {
 class _ProductDetailViewState extends State<ProductDetailView> {
   int _quantity = 1;
   bool _isPurchased = false;
+  late final CartService _cartService;
+  bool _isAddingToCart = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _cartService = serviceLocator<CartService>();
+  }
 
   // Sample product data if none provided
   final Product _defaultProduct = Product(
@@ -54,27 +65,74 @@ class _ProductDetailViewState extends State<ProductDetailView> {
     }
   }
 
-  void _addToCart() {
-    // Simulate adding to cart
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${_quantity}x ${_product.title} added to cart'),
-        backgroundColor: AppColors.ricePaddyGreen,
-        action: SnackBarAction(
-          label: 'VIEW CART',
-          textColor: Colors.white,
-          onPressed: () {
-            // Navigate to cart
-            context.push(AppRoutes.cart);
-          },
-        ),
-      ),
-    );
-
-    // For demo purposes, set as purchased to show farmer info
+  Future<void> _addToCart() async {
     setState(() {
-      _isPurchased = true;
+      _isAddingToCart = true;
     });
+
+    debugPrint('=== Add to Cart Debug Info ===');
+    debugPrint('Product ID: ${_product.id}');
+    debugPrint('Product ID length: ${_product.id.length}');
+    debugPrint('Product ID type: ${_product.id.runtimeType}');
+    debugPrint('Quantity: $_quantity');
+
+    final apiService = serviceLocator<ApiService>();
+    debugPrint('Auth token available: ${apiService.authToken != null}');
+    debugPrint('Auth token: ${apiService.authToken}');
+    debugPrint('Using default product: ${widget.product == null}');
+
+    // Additional validation
+    if (_product.id.isEmpty) {
+      debugPrint('ERROR: Product ID is empty!');
+      setState(() {
+        _isAddingToCart = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid product - cannot add to cart'),
+            backgroundColor: AppColors.chilliRed,
+          ),
+        );
+      }
+      return;
+    }
+
+    final success = await _cartService.addToCart(_product.id, _quantity);
+
+    setState(() {
+      _isAddingToCart = false;
+    });
+
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${_quantity}x ${_product.title} added to cart'),
+            backgroundColor: AppColors.ricePaddyGreen,
+            action: SnackBarAction(
+              label: 'VIEW CART',
+              textColor: Colors.white,
+              onPressed: () {
+                context.push(AppRoutes.cart);
+              },
+            ),
+          ),
+        );
+
+        // For demo purposes, set as purchased to show farmer info
+        setState(() {
+          _isPurchased = true;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_cartService.errorMessage ?? 'Failed to add to cart'),
+            backgroundColor: AppColors.chilliRed,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -380,9 +438,10 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   // Add to Cart Button
                   ThaiButton(
                     label: 'Add to Cart',
-                    onPressed: _addToCart,
+                    onPressed: () => _addToCart(),
                     variant: ThaiButtonVariant.secondary,
                     icon: Icons.shopping_cart_outlined,
+                    isLoading: _isAddingToCart,
                     isFullWidth: true,
                   ),
                 ],
