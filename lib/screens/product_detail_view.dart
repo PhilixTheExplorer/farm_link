@@ -1,144 +1,79 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../components/thai_button.dart';
 import '../core/theme/app_colors.dart';
 import '../core/router/app_router.dart';
 import '../models/product.dart';
-import '../services/cart_service.dart';
-import '../services/api_service.dart';
-import '../core/di/service_locator.dart';
+import '../providers/product_provider.dart';
 
-class ProductDetailView extends StatefulWidget {
+class ProductDetailView extends ConsumerStatefulWidget {
   final Product? product;
 
   const ProductDetailView({super.key, this.product});
 
   @override
-  State<ProductDetailView> createState() => _ProductDetailViewState();
+  ConsumerState<ProductDetailView> createState() => _ProductDetailViewState();
 }
 
-class _ProductDetailViewState extends State<ProductDetailView> {
-  int _quantity = 1;
-  bool _isPurchased = false;
-  late final CartService _cartService;
-  bool _isAddingToCart = false;
-
+class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
   @override
   void initState() {
     super.initState();
-    _cartService = serviceLocator<CartService>();
-  }
-
-  // Sample product data if none provided
-  final Product _defaultProduct = Product(
-    id: 'sample_1',
-    farmerId: 'farmer_1',
-    title: 'Organic Rice',
-    description:
-        'Freshly harvested jasmine rice from our farm in Chiang Mai. This premium quality rice is grown using traditional farming methods without chemical pesticides or fertilizers. Perfect for everyday meals or special occasions.',
-    price: 120.0,
-    category: ProductCategory.rice,
-    quantity: 50,
-    unit: 'kg',
-    imageUrl:
-        'https://images.unsplash.com/photo-1603833665858-e61d17a86224?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80',
-    status: ProductStatus.available,
-    createdDate: DateTime.now(),
-    orderCount: 0,
-  );
-
-  Product get _product => widget.product ?? _defaultProduct;
-
-  void _incrementQuantity() {
-    if (_quantity < _product.quantity) {
-      setState(() {
-        _quantity++;
-      });
-    }
-  }
-
-  void _decrementQuantity() {
-    if (_quantity > 1) {
-      setState(() {
-        _quantity--;
-      });
-    }
-  }
-
-  Future<void> _addToCart() async {
-    setState(() {
-      _isAddingToCart = true;
+    // Initialize the product provider with the provided product
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(productDetailProvider(widget.product).notifier)
+          .initialize(widget.product);
     });
+  }
 
-    debugPrint('=== Add to Cart Debug Info ===');
-    debugPrint('Product ID: ${_product.id}');
-    debugPrint('Product ID length: ${_product.id.length}');
-    debugPrint('Product ID type: ${_product.id.runtimeType}');
-    debugPrint('Quantity: $_quantity');
+  void _addToCart() async {
+    final success =
+        await ref
+            .read(productDetailProvider(widget.product).notifier)
+            .addToCart();
+    final productState = ref.read(productDetailProvider(widget.product));
 
-    final apiService = serviceLocator<ApiService>();
-    debugPrint('Auth token available: ${apiService.authToken != null}');
-    debugPrint('Auth token: ${apiService.authToken}');
-    debugPrint('Using default product: ${widget.product == null}');
-
-    // Additional validation
-    if (_product.id.isEmpty) {
-      debugPrint('ERROR: Product ID is empty!');
-      setState(() {
-        _isAddingToCart = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid product - cannot add to cart'),
-            backgroundColor: AppColors.chilliRed,
+    if (mounted && success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${productState.quantity}x ${productState.product!.title} added to cart',
           ),
-        );
-      }
-      return;
-    }
-
-    final success = await _cartService.addToCart(_product.id, _quantity);
-
-    setState(() {
-      _isAddingToCart = false;
-    });
-
-    if (mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${_quantity}x ${_product.title} added to cart'),
-            backgroundColor: AppColors.ricePaddyGreen,
-            action: SnackBarAction(
-              label: 'VIEW CART',
-              textColor: Colors.white,
-              onPressed: () {
-                context.push(AppRoutes.cart);
-              },
-            ),
+          backgroundColor: AppColors.ricePaddyGreen,
+          action: SnackBarAction(
+            label: 'VIEW CART',
+            textColor: Colors.white,
+            onPressed: () {
+              context.push(AppRoutes.cart);
+            },
           ),
-        );
-
-        // For demo purposes, set as purchased to show farmer info
-        setState(() {
-          _isPurchased = true;
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_cartService.errorMessage ?? 'Failed to add to cart'),
-            backgroundColor: AppColors.chilliRed,
-          ),
-        );
-      }
+        ),
+      );
+    } else if (mounted && !success) {
+      final errorMessage = productState.errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage ?? 'Failed to add to cart'),
+          backgroundColor: AppColors.chilliRed,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final subtotal = _product.price * _quantity;
+    final productState = ref.watch(productDetailProvider(widget.product));
+
+    // If product is not initialized, show loading
+    if (productState.product == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final product = productState.product!;
+    final subtotal = productState.subtotal;
 
     return Scaffold(
       body: CustomScrollView(
@@ -148,7 +83,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
             expandedHeight: 300,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: Image.network(_product.imageUrl, fit: BoxFit.cover),
+              background: Image.network(product.imageUrl, fit: BoxFit.cover),
             ),
             leading: IconButton(
               icon: Container(
@@ -172,7 +107,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   child: const Icon(Icons.favorite_border),
                 ),
                 onPressed: () {
-                  // Share product
+                  // Add to favorites
                 },
               ),
               IconButton(
@@ -185,7 +120,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   child: const Icon(Icons.shopping_cart),
                 ),
                 onPressed: () {
-                  // Add to favorites
+                  context.push(AppRoutes.cart);
                 },
               ),
             ],
@@ -200,7 +135,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                 children: [
                   // Category Chip
                   Chip(
-                    label: Text(_product.categoryDisplayName),
+                    label: Text(product.categoryDisplayName),
                     backgroundColor: AppColors.ricePaddyGreen.withOpacity(0.2),
                     labelStyle: theme.textTheme.labelSmall?.copyWith(
                       color: AppColors.ricePaddyGreen,
@@ -218,14 +153,14 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     children: [
                       Expanded(
                         child: Text(
-                          _product.title,
+                          product.title,
                           style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       Text(
-                        '฿${_product.price.toStringAsFixed(0)}',
+                        '฿${product.price.toStringAsFixed(0)}',
                         style: theme.textTheme.headlineSmall?.copyWith(
                           color: AppColors.tamarindBrown,
                           fontWeight: FontWeight.bold,
@@ -246,7 +181,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${_product.quantity} ${_product.unit} available',
+                        '${product.quantity} ${product.unit} available',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: AppColors.palmAshGray,
                         ),
@@ -264,12 +199,12 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(_product.description, style: theme.textTheme.bodyMedium),
+                  Text(product.description, style: theme.textTheme.bodyMedium),
 
                   const SizedBox(height: 24),
 
                   // Farmer Info (visible only if purchased)
-                  if (_isPurchased) ...[
+                  if (productState.isPurchased) ...[
                     Text(
                       'Farmer Information',
                       style: theme.textTheme.titleMedium?.copyWith(
@@ -309,7 +244,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                                           ),
                                     ),
                                     Text(
-                                      'Farmer ID: ${_product.farmerId}',
+                                      'Farmer ID: ${product.farmerId}',
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             color: AppColors.palmAshGray,
@@ -379,7 +314,17 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: _decrementQuantity,
+                        onPressed:
+                            productState.canDecrement
+                                ? () =>
+                                    ref
+                                        .read(
+                                          productDetailProvider(
+                                            widget.product,
+                                          ).notifier,
+                                        )
+                                        .decrementQuantity()
+                                : null,
                         icon: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
@@ -405,12 +350,22 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                           ),
                         ),
                         child: Text(
-                          _quantity.toString(),
+                          productState.quantity.toString(),
                           style: theme.textTheme.titleMedium,
                         ),
                       ),
                       IconButton(
-                        onPressed: _incrementQuantity,
+                        onPressed:
+                            productState.canIncrement
+                                ? () =>
+                                    ref
+                                        .read(
+                                          productDetailProvider(
+                                            widget.product,
+                                          ).notifier,
+                                        )
+                                        .incrementQuantity()
+                                : null,
                         icon: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
@@ -425,7 +380,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                       ),
                       const Spacer(),
                       Text(
-                        'Subtotal: ฿$subtotal',
+                        'Subtotal: ฿${subtotal.toStringAsFixed(0)}',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -438,10 +393,10 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   // Add to Cart Button
                   ThaiButton(
                     label: 'Add to Cart',
-                    onPressed: () => _addToCart(),
+                    onPressed: productState.isAddingToCart ? null : _addToCart,
                     variant: ThaiButtonVariant.secondary,
                     icon: Icons.shopping_cart_outlined,
-                    isLoading: _isAddingToCart,
+                    isLoading: productState.isAddingToCart,
                     isFullWidth: true,
                   ),
                 ],

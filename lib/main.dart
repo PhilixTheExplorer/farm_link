@@ -16,7 +16,7 @@ void main() async {
   try {
     await dotenv.load();
   } catch (e) {
-    print('Warning: Could not load .env file: $e');
+    debugPrint('Warning: Could not load .env file: $e');
     // Continue execution - the app will use fallback values
   }
 

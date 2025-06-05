@@ -5,7 +5,7 @@ enum ThaiButtonVariant { primary, secondary, accent }
 
 class ThaiButton extends StatelessWidget {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final ThaiButtonVariant variant;
   final IconData? icon;
   final bool isLoading;
@@ -47,7 +47,7 @@ class ThaiButton extends StatelessWidget {
     return SizedBox(
       width: isFullWidth ? double.infinity : null,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: (isLoading || onPressed == null) ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: textColor,

@@ -6,8 +6,7 @@ import '../components/app_drawer.dart';
 import '../core/theme/app_colors.dart';
 import '../core/router/app_router.dart';
 import '../viewmodels/buyer_marketplace_viewmodel.dart';
-import '../services/cart_service.dart';
-import '../core/di/service_locator.dart';
+import '../providers/cart_provider.dart';
 
 class BuyerMarketplaceView extends ConsumerStatefulWidget {
   const BuyerMarketplaceView({super.key});
@@ -19,13 +18,6 @@ class BuyerMarketplaceView extends ConsumerStatefulWidget {
 
 class _BuyerMarketplaceViewState extends ConsumerState<BuyerMarketplaceView> {
   final TextEditingController _searchController = TextEditingController();
-  late final CartService _cartService;
-
-  @override
-  void initState() {
-    super.initState();
-    _cartService = serviceLocator<CartService>();
-  }
 
   @override
   void dispose() {
@@ -54,9 +46,9 @@ class _BuyerMarketplaceViewState extends ConsumerState<BuyerMarketplaceView> {
             onPressed: () => notifier.refreshProducts(),
             tooltip: 'Refresh',
           ),
-          ListenableBuilder(
-            listenable: _cartService,
-            builder: (context, child) {
+          Consumer(
+            builder: (context, ref, child) {
+              final itemCount = ref.watch(cartItemCountProvider);
               return Stack(
                 children: [
                   IconButton(
@@ -65,7 +57,7 @@ class _BuyerMarketplaceViewState extends ConsumerState<BuyerMarketplaceView> {
                       context.push(AppRoutes.cart);
                     },
                   ),
-                  if (_cartService.itemCount > 0)
+                  if (itemCount > 0)
                     Positioned(
                       right: 6,
                       top: 6,
@@ -80,7 +72,7 @@ class _BuyerMarketplaceViewState extends ConsumerState<BuyerMarketplaceView> {
                           minHeight: 16,
                         ),
                         child: Text(
-                          '${_cartService.itemCount}',
+                          '$itemCount',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
