@@ -5,7 +5,10 @@ import '../components/thai_button.dart';
 import '../core/theme/app_colors.dart';
 import '../core/router/app_router.dart';
 import '../models/product.dart';
+import '../models/user.dart';
 import '../providers/product_provider.dart';
+import '../services/user_service.dart';
+import '../core/di/service_locator.dart';
 
 class ProductDetailView extends ConsumerStatefulWidget {
   final Product? product;
@@ -17,6 +20,8 @@ class ProductDetailView extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
+  final UserService _userService = serviceLocator<UserService>();
+
   @override
   void initState() {
     super.initState();
@@ -110,19 +115,22 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                   // Add to favorites
                 },
               ),
-              IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.bambooCream.withOpacity(0.8),
-                    shape: BoxShape.circle,
+              // Only show cart icon for buyers
+              if (serviceLocator<UserService>().currentUserRole ==
+                  UserRole.buyer)
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.bambooCream.withOpacity(0.8),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.shopping_cart),
                   ),
-                  child: const Icon(Icons.shopping_cart),
+                  onPressed: () {
+                    context.push(AppRoutes.cart);
+                  },
                 ),
-                onPressed: () {
-                  context.push(AppRoutes.cart);
-                },
-              ),
             ],
           ),
 
@@ -303,30 +311,46 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                     const SizedBox(height: 24),
                   ],
 
-                  // Quantity Selector
-                  Text(
-                    'Quantity',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  // Quantity Selector - visible only for buyers
+                  if (_userService.currentUserRole == UserRole.buyer) ...[
+                    Text(
+                      'Quantity',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed:
-                            productState.canDecrement
-                                ? () =>
-                                    ref
-                                        .read(
-                                          productDetailProvider(
-                                            widget.product,
-                                          ).notifier,
-                                        )
-                                        .decrementQuantity()
-                                : null,
-                        icon: Container(
-                          padding: const EdgeInsets.all(4),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed:
+                              productState.canDecrement
+                                  ? () =>
+                                      ref
+                                          .read(
+                                            productDetailProvider(
+                                              widget.product,
+                                            ).notifier,
+                                          )
+                                          .decrementQuantity()
+                                  : null,
+                          icon: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.bambooCream,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.palmAshGray.withOpacity(0.3),
+                              ),
+                            ),
+                            child: const Icon(Icons.remove, size: 16),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.bambooCream,
                             borderRadius: BorderRadius.circular(8),
@@ -334,71 +358,58 @@ class _ProductDetailViewState extends ConsumerState<ProductDetailView> {
                               color: AppColors.palmAshGray.withOpacity(0.3),
                             ),
                           ),
-                          child: const Icon(Icons.remove, size: 16),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.bambooCream,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: AppColors.palmAshGray.withOpacity(0.3),
+                          child: Text(
+                            productState.quantity.toString(),
+                            style: theme.textTheme.titleMedium,
                           ),
                         ),
-                        child: Text(
-                          productState.quantity.toString(),
-                          style: theme.textTheme.titleMedium,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed:
-                            productState.canIncrement
-                                ? () =>
-                                    ref
-                                        .read(
-                                          productDetailProvider(
-                                            widget.product,
-                                          ).notifier,
-                                        )
-                                        .incrementQuantity()
-                                : null,
-                        icon: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: AppColors.bambooCream,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppColors.palmAshGray.withOpacity(0.3),
+                        IconButton(
+                          onPressed:
+                              productState.canIncrement
+                                  ? () =>
+                                      ref
+                                          .read(
+                                            productDetailProvider(
+                                              widget.product,
+                                            ).notifier,
+                                          )
+                                          .incrementQuantity()
+                                  : null,
+                          icon: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: AppColors.bambooCream,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.palmAshGray.withOpacity(0.3),
+                              ),
                             ),
+                            child: const Icon(Icons.add, size: 16),
                           ),
-                          child: const Icon(Icons.add, size: 16),
                         ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        'Subtotal: ฿${subtotal.toStringAsFixed(0)}',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                        const Spacer(),
+                        Text(
+                          'Subtotal: ฿${subtotal.toStringAsFixed(0)}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
 
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 32),
 
-                  // Add to Cart Button
-                  ThaiButton(
-                    label: 'Add to Cart',
-                    onPressed: productState.isAddingToCart ? null : _addToCart,
-                    variant: ThaiButtonVariant.secondary,
-                    icon: Icons.shopping_cart_outlined,
-                    isLoading: productState.isAddingToCart,
-                    isFullWidth: true,
-                  ),
+                    // Add to Cart Button
+                    ThaiButton(
+                      label: 'Add to Cart',
+                      onPressed:
+                          productState.isAddingToCart ? null : _addToCart,
+                      variant: ThaiButtonVariant.secondary,
+                      icon: Icons.shopping_cart_outlined,
+                      isLoading: productState.isAddingToCart,
+                      isFullWidth: true,
+                    ),
+                  ],
                 ],
               ),
             ),
