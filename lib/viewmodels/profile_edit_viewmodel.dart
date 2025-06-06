@@ -219,7 +219,6 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
   ) : super(ProfileEditState()) {
     _initializeForm();
   }
-
   @override
   void dispose() {
     state.dispose();
@@ -274,14 +273,18 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
   // Map API preference values to UI display names
   String _mapApiToPaymentMethodUI(String apiValue) {
     switch (apiValue) {
-      case 'bank_transfer':
-        return 'Bank Transfer';
       case 'cash_on_delivery':
         return 'Cash on Delivery';
+      case 'bank_transfer':
+        return 'Bank Transfer';
+      case 'mobile_banking':
+        return 'Mobile Banking';
       case 'credit_card':
         return 'Credit Card';
-      case 'digital_wallet':
-        return 'Digital Wallet';
+      case 'promptpay':
+        return 'PromptPay';
+      case 'qr_code_payment':
+        return 'QR Code Payment';
       default:
         return apiValue; // Return as-is if no mapping found
     }
@@ -290,14 +293,18 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
   // Map UI display names to API values
   String _mapPaymentMethodUIToApi(String uiValue) {
     switch (uiValue) {
-      case 'Bank Transfer':
-        return 'bank_transfer';
       case 'Cash on Delivery':
         return 'cash_on_delivery';
+      case 'Bank Transfer':
+        return 'bank_transfer';
+      case 'Mobile Banking':
+        return 'mobile_banking';
       case 'Credit Card':
         return 'credit_card';
-      case 'Digital Wallet':
-        return 'digital_wallet';
+      case 'PromptPay':
+        return 'promptpay';
+      case 'QR Code Payment':
+        return 'qr_code_payment';
       default:
         return uiValue.toLowerCase().replaceAll(' ', '_');
     }
@@ -506,8 +513,9 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
 
   // Refresh form data from API
   Future<void> refreshFormData() async {
-    // For now, just reinitialize with cached data
-    // API refresh happens in ProfileSettingsView when returning from edit
+    // Refresh user data from API first to ensure we have latest info
+    await _userService.refreshCurrentUser();
+    // Then reinitialize the form with the fresh data
     _initializeForm();
   }
 
@@ -523,9 +531,11 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
   }
 }
 
-// Provider for profile edit
+// Provider for profile edit - auto dispose to create fresh instance each time
 final profileEditViewModelProvider =
-    StateNotifierProvider<ProfileEditViewModel, ProfileEditState>((ref) {
+    StateNotifierProvider.autoDispose<ProfileEditViewModel, ProfileEditState>((
+      ref,
+    ) {
       final userService = serviceLocator<UserService>();
       final buyerService = serviceLocator<BuyerService>();
       final farmerService = serviceLocator<FarmerService>();

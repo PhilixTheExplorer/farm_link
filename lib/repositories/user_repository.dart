@@ -148,19 +148,18 @@ class UserRepository {
     // Update cached user
     _currentUser = user;
     return user;
-  }
+  } // Method for login/register - fetches user by ID from generic endpoint
 
   Future<User?> getUserById(String userId) async {
     final response = await _apiService.getUserById(userId);
-
-    if (response == null) {
+    if (response == null || response['success'] != true) {
       return null;
     }
 
-    // Parse response and create user object
     final userData = response['data']['user'];
-    final profileData = response['data']['profile'];
-    if (userData['role']?.toString().toLowerCase() == 'farmer') {
+    final role = userData['role']?.toString().toLowerCase();
+
+    if (role == 'farmer') {
       return Farmer(
         id: userData['id'],
         email: userData['email'],
@@ -168,12 +167,11 @@ class UserRepository {
         phone: userData['phone'] ?? '',
         location: userData['location'] ?? '',
         profileImageUrl: userData['profile_image_url'],
-        farmName: profileData['farm_name'] ?? '',
-        farmAddress: profileData['farm_address'] ?? '',
-        farmDescription:
-            profileData['farm_description'] ?? profileData['description'],
-        totalSales: profileData['total_sales'] ?? 0,
-        isVerified: profileData['is_verified'] ?? false,
+        farmName: '',
+        farmAddress: null,
+        farmDescription: null,
+        totalSales: 0,
+        isVerified: false,
       );
     } else {
       return Buyer(
@@ -183,17 +181,76 @@ class UserRepository {
         phone: userData['phone'] ?? '',
         location: userData['location'] ?? '',
         profileImageUrl: userData['profile_image_url'],
-        totalSpent: (profileData['total_spent'] ?? 0).toDouble(),
-        totalOrders: profileData['total_orders'] ?? 0,
-        deliveryAddress: profileData['delivery_address'] ?? '',
-        deliveryInstructions: profileData['delivery_instructions'],
-        preferences:
-            profileData['preferred_payment_methods'] != null
-                ? List<String>.from(profileData['preferred_payment_methods'])
-                : null,
-        loyaltyPoints: profileData['loyalty_points'],
+        totalSpent: 0.0,
+        totalOrders: 0,
+        deliveryAddress: '',
+        deliveryInstructions: null,
+        preferences: null,
+        loyaltyPoints: 0,
       );
     }
+  }
+
+  // Method for refreshing farmer data - calls farmer-specific endpoint
+  Future<Farmer?> refreshFarmerData(String userId) async {
+    final response = await _apiService.getFarmerByUserId(userId);
+    if (response == null || response['success'] != true) {
+      return null;
+    }
+
+    final data = response['data'];
+    final userData = data['users'];
+
+    final farmer = Farmer(
+      id: userData['id'],
+      email: userData['email'],
+      name: userData['name'],
+      phone: userData['phone'] ?? '',
+      location: userData['location'] ?? '',
+      profileImageUrl: userData['profile_image_url'],
+      farmName: data['farm_name'] ?? '',
+      farmAddress: data['farm_address'],
+      farmDescription: data['farm_description'],
+      totalSales: data['total_sales'] ?? 0,
+      isVerified: data['is_verified'] ?? false,
+    );
+
+    // Update cached user
+    _currentUser = farmer;
+    return farmer;
+  }
+
+  // Method for refreshing buyer data - calls buyer-specific endpoint
+  Future<Buyer?> refreshBuyerData(String userId) async {
+    final response = await _apiService.getBuyerByUserId(userId);
+    if (response == null || response['success'] != true) {
+      return null;
+    }
+
+    final data = response['data'];
+    final userData = data['users'];
+
+    final buyer = Buyer(
+      id: userData['id'],
+      email: userData['email'],
+      name: userData['name'],
+      phone: userData['phone'] ?? '',
+      location: userData['location'] ?? '',
+      profileImageUrl: userData['profile_image_url'],
+      totalSpent: (data['total_spent'] ?? 0).toDouble(),
+      totalOrders: data['total_orders'] ?? 0,
+      deliveryAddress: data['delivery_address'] ?? '',
+      deliveryInstructions: data['delivery_instructions'],
+      preferences:
+          data['preferred_payment_methods'] != null
+              ? List<String>.from(data['preferred_payment_methods'])
+              : null,
+      loyaltyPoints: data['loyalty_points'] ?? 0,
+    );
+
+    // Update cached user
+    _currentUser = buyer;
+    return buyer;
   }
 
   // Cache management methods

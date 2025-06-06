@@ -9,11 +9,25 @@ import '../viewmodels/profile_edit_viewmodel.dart';
 import '../models/buyer.dart';
 import '../models/farmer.dart';
 
-class ProfileEditView extends ConsumerWidget {
+class ProfileEditView extends ConsumerStatefulWidget {
   const ProfileEditView({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileEditView> createState() => _ProfileEditViewState();
+}
+
+class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
+  @override
+  void initState() {
+    super.initState();
+    // Refresh form data when the screen loads to ensure we have latest user data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(profileEditViewModelProvider.notifier).refreshFormData();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final viewModel = ref.watch(profileEditViewModelProvider.notifier);
     final state = ref.watch(
       profileEditViewModelProvider,

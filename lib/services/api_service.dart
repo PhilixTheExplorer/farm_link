@@ -310,8 +310,8 @@ class ApiService {
   /// Get farmer by user ID
   Future<Map<String, dynamic>?> getFarmerByUserId(String userId) async {
     try {
-      final uri = Uri.parse('$baseUrl/farmers/user/$userId');
-      final response = await http.get(uri, headers: _headers);
+      final uri = Uri.parse('$baseUrl/farmers/$userId');
+      final response = await http.get(uri, headers: _authHeaders);
 
       if (response.statusCode == 200) {
         return json.decode(response.body);

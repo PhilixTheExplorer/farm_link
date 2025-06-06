@@ -131,7 +131,7 @@ class UserService extends ChangeNotifier {
     return await _userRepository.testConnection();
   }
 
-  // Refresh current user data from API
+  // Refresh current user data from API using role-specific endpoints
   Future<bool> refreshCurrentUser() async {
     if (currentUser == null) {
       return false;
@@ -140,10 +140,19 @@ class UserService extends ChangeNotifier {
     _setLoading(true);
 
     try {
-      final refreshedUser = await _userRepository.getUserById(currentUser!.id);
+      User? refreshedUser;
+
+      if (currentUserRole == UserRole.farmer) {
+        refreshedUser = await _userRepository.refreshFarmerData(
+          currentUser!.id,
+        );
+      } else {
+        refreshedUser = await _userRepository.refreshBuyerData(currentUser!.id);
+      }
+
       if (refreshedUser != null) {
-        _userRepository.setCurrentUser(refreshedUser);
         _setLoading(false);
+        notifyListeners(); // Notify listeners since user data was updated in repository
         return true;
       }
       _setLoading(false);

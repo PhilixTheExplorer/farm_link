@@ -1,4 +1,3 @@
-// filepath: c:\Users\kshin\Desktop\CAMPUS\farm_link\lib\repositories\buyer_repository.dart
 import '../models/buyer.dart';
 import '../services/api_service.dart';
 import '../core/di/service_locator.dart';
