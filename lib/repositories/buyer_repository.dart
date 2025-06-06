@@ -91,8 +91,9 @@ class BuyerRepository {
 
   // Helper method to create Buyer object from JSON
   Buyer _createBuyerFromJson(Map<String, dynamic> json) {
-    final userData = json['user'] ?? json;
-    final profileData = json['profile'] ?? json;
+    // Handle both nested structure (users field) and flat structure
+    final userData = json['users'] ?? json['user'] ?? json;
+    final profileData = json;
 
     return Buyer(
       id: userData['id'],
@@ -104,6 +105,12 @@ class BuyerRepository {
       totalSpent: (profileData['total_spent'] ?? 0).toDouble(),
       totalOrders: profileData['total_orders'] ?? 0,
       deliveryAddress: profileData['delivery_address'] ?? '',
+      deliveryInstructions: profileData['delivery_instructions'],
+      preferences:
+          profileData['preferred_payment_methods'] != null
+              ? List<String>.from(profileData['preferred_payment_methods'])
+              : null,
+      loyaltyPoints: profileData['loyalty_points'],
     );
   }
 }

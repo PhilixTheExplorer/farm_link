@@ -131,6 +131,30 @@ class UserService extends ChangeNotifier {
     return await _userRepository.testConnection();
   }
 
+  // Refresh current user data from API
+  Future<bool> refreshCurrentUser() async {
+    if (currentUser == null) {
+      return false;
+    }
+
+    _setLoading(true);
+
+    try {
+      final refreshedUser = await _userRepository.getUserById(currentUser!.id);
+      if (refreshedUser != null) {
+        _userRepository.setCurrentUser(refreshedUser);
+        _setLoading(false);
+        return true;
+      }
+      _setLoading(false);
+      return false;
+    } catch (e) {
+      debugPrint('Refresh current user error: $e');
+      _setLoading(false);
+      return false;
+    }
+  }
+
   // Private helper methods
   void _setLoading(bool loading) {
     _isLoading = loading;

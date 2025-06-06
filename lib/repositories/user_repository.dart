@@ -61,6 +61,12 @@ class UserRepository {
         totalSpent: (profileData['total_spent'] ?? 0).toDouble(),
         totalOrders: profileData['total_orders'] ?? 0,
         deliveryAddress: profileData['delivery_address'] ?? '',
+        deliveryInstructions: profileData['delivery_instructions'],
+        preferences:
+            profileData['preferred_payment_methods'] != null
+                ? List<String>.from(profileData['preferred_payment_methods'])
+                : null,
+        loyaltyPoints: profileData['loyalty_points'],
       );
     }
 
@@ -113,6 +119,12 @@ class UserRepository {
         totalSpent: (profileData['total_spent'] ?? 0).toDouble(),
         totalOrders: profileData['total_orders'] ?? 0,
         deliveryAddress: profileData['delivery_address'] ?? '',
+        deliveryInstructions: profileData['delivery_instructions'],
+        preferences:
+            profileData['preferred_payment_methods'] != null
+                ? List<String>.from(profileData['preferred_payment_methods'])
+                : null,
+        loyaltyPoints: profileData['loyalty_points'],
       );
     }
 
@@ -171,6 +183,12 @@ class UserRepository {
         totalSpent: (profileData['total_spent'] ?? 0).toDouble(),
         totalOrders: profileData['total_orders'] ?? 0,
         deliveryAddress: profileData['delivery_address'] ?? '',
+        deliveryInstructions: profileData['delivery_instructions'],
+        preferences:
+            profileData['preferred_payment_methods'] != null
+                ? List<String>.from(profileData['preferred_payment_methods'])
+                : null,
+        loyaltyPoints: profileData['loyalty_points'],
       );
     }
   }

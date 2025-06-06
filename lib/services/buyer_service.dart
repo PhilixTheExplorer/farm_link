@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/buyer.dart';
 import '../repositories/buyer_repository.dart';
+import '../services/user_service.dart';
 import '../core/di/service_locator.dart';
 
 class BuyerService extends ChangeNotifier {
@@ -52,6 +53,11 @@ class BuyerService extends ChangeNotifier {
 
     try {
       await _buyerRepository.updateBuyerProfile(buyerId, buyerData);
+
+      // Refresh current user data to reflect changes in UI
+      final userService = serviceLocator<UserService>();
+      await userService.refreshCurrentUser();
+
       _setLoading(false);
       return true;
     } catch (e) {

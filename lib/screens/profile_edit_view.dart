@@ -33,9 +33,9 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   // Common form controllers
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
-  late TextEditingController _locationController;
-  // Buyer specific controllers
+  late TextEditingController _locationController; // Buyer specific controllers
   late TextEditingController _deliveryAddressController;
+  late TextEditingController _deliveryInstructionsController;
   List<String> _preferences = [];
 
   // Farmer specific controllers
@@ -61,7 +61,15 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       _deliveryAddressController = TextEditingController(
         text: user.deliveryAddress ?? '',
       );
-      _preferences = user.preferences?.toList() ?? [];
+      _deliveryInstructionsController = TextEditingController(
+        text: user.deliveryInstructions ?? '',
+      );
+      // Convert API preference values to UI display names
+      _preferences =
+          user.preferences
+              ?.map((apiValue) => _mapApiToPaymentMethodUI(apiValue))
+              .toList() ??
+          [];
     } else if (user is Farmer) {
       // Farmer specific fields
       _farmNameController = TextEditingController(text: user.farmName ?? '');
@@ -130,6 +138,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     _phoneController.dispose();
     _locationController.dispose();
     _deliveryAddressController.dispose();
+    _deliveryInstructionsController.dispose();
     _farmNameController.dispose();
     _farmAddressController.dispose();
     _descriptionController.dispose();
@@ -178,12 +187,16 @@ class _ProfileEditViewState extends State<ProfileEditView> {
   Future<void> _updateBuyerProfile() async {
     final buyer = _userService.currentUser as Buyer;
 
+    // Map UI payment method names to API values
+    final mappedPreferences = _preferences.map(_mapPaymentMethodToApi).toList();
+
     final updatedData = {
       'name': _nameController.text.trim(),
       'phone': _phoneController.text.trim(),
       'location': _locationController.text.trim(),
       'delivery_address': _deliveryAddressController.text.trim(),
-      'preferences': _preferences,
+      'delivery_instructions': _deliveryInstructionsController.text.trim(),
+      'preferred_payment_methods': mappedPreferences,
     };
 
     // TODO: Add image upload when backend supports it
@@ -194,6 +207,50 @@ class _ProfileEditViewState extends State<ProfileEditView> {
     }
 
     await _buyerService.updateBuyerProfile(buyer.id, updatedData);
+  }
+
+  // Map UI payment method names to API values
+  String _mapPaymentMethodToApi(String uiMethod) {
+    switch (uiMethod) {
+      case 'Cash on Delivery':
+        return 'cash_on_delivery';
+      case 'Bank Transfer':
+        return 'bank_transfer';
+      case 'Mobile Banking':
+        return 'mobile_banking';
+      case 'Credit Card':
+        return 'credit_card';
+      case 'PromptPay':
+        return 'promptpay';
+      case 'QR Code Payment':
+        return 'qr_code';
+      default:
+        return uiMethod.toLowerCase().replaceAll(' ', '_');
+    }
+  }
+
+  // Map API payment method values to UI display names
+  String _mapApiToPaymentMethodUI(String apiMethod) {
+    switch (apiMethod) {
+      case 'cash_on_delivery':
+        return 'Cash on Delivery';
+      case 'bank_transfer':
+        return 'Bank Transfer';
+      case 'mobile_banking':
+        return 'Mobile Banking';
+      case 'credit_card':
+        return 'Credit Card';
+      case 'promptpay':
+        return 'PromptPay';
+      case 'qr_code':
+        return 'QR Code Payment';
+      default:
+        // Convert snake_case to Title Case
+        return apiMethod
+            .split('_')
+            .map((word) => word[0].toUpperCase() + word.substring(1))
+            .join(' ');
+    }
   }
 
   Future<void> _updateFarmerProfile() async {
@@ -409,6 +466,16 @@ class _ProfileEditViewState extends State<ProfileEditView> {
           }
           return null;
         },
+      ),
+      const SizedBox(height: 16),
+
+      // Delivery Instructions
+      ThaiTextField(
+        label: 'Delivery Instructions (Optional)',
+        controller: _deliveryInstructionsController,
+        prefixIcon: Icons.note_outlined,
+        maxLines: 2,
+        hintText: 'e.g., "Call when you arrive", "Leave at front door"',
       ),
       const SizedBox(height: 16),
 

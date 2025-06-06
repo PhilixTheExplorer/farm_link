@@ -4,7 +4,9 @@ class Buyer extends User {
   final double totalSpent;
   final int totalOrders;
   final String? deliveryAddress;
+  final String? deliveryInstructions;
   final List<String>? preferences;
+  final int? loyaltyPoints;
 
   Buyer({
     required super.id,
@@ -18,32 +20,47 @@ class Buyer extends User {
     this.totalSpent = 0.0,
     this.totalOrders = 0,
     this.deliveryAddress,
+    this.deliveryInstructions,
     this.preferences,
+    this.loyaltyPoints,
   }) : super(role: UserRole.buyer);
 
   factory Buyer.fromJson(Map<String, dynamic> json) {
+    // Handle both nested structure from API and flat structure
+    final userData = json['users'] ?? json;
+    final buyerData = json;
+
     return Buyer(
-      id: json['id'],
-      email: json['email'],
-      name: json['name'],
-      phone: json['phone'],
-      location: json['location'],
-      profileImageUrl: json['profile_image_url'] ?? json['profileImageUrl'],
+      id: userData['id'],
+      email: userData['email'],
+      name: userData['name'],
+      phone: userData['phone'],
+      location: userData['location'],
+      profileImageUrl:
+          userData['profile_image_url'] ?? userData['profileImageUrl'],
       createdAt:
-          json['created_at'] != null
-              ? DateTime.parse(json['created_at'])
+          buyerData['created_at'] != null
+              ? DateTime.parse(buyerData['created_at'])
               : null,
       updatedAt:
-          json['updated_at'] != null
-              ? DateTime.parse(json['updated_at'])
+          buyerData['updated_at'] != null
+              ? DateTime.parse(buyerData['updated_at'])
               : null,
-      totalSpent: (json['total_spent'] ?? json['totalSpent'] ?? 0).toDouble(),
-      totalOrders: json['total_orders'] ?? json['totalOrders'] ?? 0,
-      deliveryAddress: json['delivery_address'] ?? json['deliveryAddress'],
+      totalSpent:
+          (buyerData['total_spent'] ?? buyerData['totalSpent'] ?? 0).toDouble(),
+      totalOrders: buyerData['total_orders'] ?? buyerData['totalOrders'] ?? 0,
+      deliveryAddress:
+          buyerData['delivery_address'] ?? buyerData['deliveryAddress'],
+      deliveryInstructions:
+          buyerData['delivery_instructions'] ??
+          buyerData['deliveryInstructions'],
       preferences:
-          json['preferences'] != null
-              ? List<String>.from(json['preferences'])
-              : null,
+          buyerData['preferred_payment_methods'] != null
+              ? List<String>.from(buyerData['preferred_payment_methods'])
+              : (buyerData['preferences'] != null
+                  ? List<String>.from(buyerData['preferences'])
+                  : null),
+      loyaltyPoints: buyerData['loyalty_points'] ?? buyerData['loyaltyPoints'],
     );
   }
 
@@ -54,7 +71,9 @@ class Buyer extends User {
       'total_spent': totalSpent,
       'total_orders': totalOrders,
       'delivery_address': deliveryAddress,
-      if (preferences != null) 'preferences': preferences,
+      'delivery_instructions': deliveryInstructions,
+      'loyalty_points': loyaltyPoints,
+      if (preferences != null) 'preferred_payment_methods': preferences,
     });
     return json;
   }
@@ -73,7 +92,9 @@ class Buyer extends User {
     double? totalSpent,
     int? totalOrders,
     String? deliveryAddress,
+    String? deliveryInstructions,
     List<String>? preferences,
+    int? loyaltyPoints,
   }) {
     return Buyer(
       id: id ?? this.id,
@@ -87,13 +108,16 @@ class Buyer extends User {
       totalSpent: totalSpent ?? this.totalSpent,
       totalOrders: totalOrders ?? this.totalOrders,
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
+      deliveryInstructions: deliveryInstructions ?? this.deliveryInstructions,
       preferences: preferences ?? this.preferences,
+      loyaltyPoints: loyaltyPoints ?? this.loyaltyPoints,
     );
   }
 
-  // Helper getters
-  String get spentDisplay => '฿${totalSpent.toStringAsFixed(0)}';
+  // Business logic methods
+  String get spendingDisplay => '฿${totalSpent.toStringAsFixed(2)}';
   String get orderCountDisplay => '$totalOrders orders';
+
   bool get hasDeliveryAddress =>
       deliveryAddress != null && deliveryAddress!.isNotEmpty;
 

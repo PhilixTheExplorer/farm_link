@@ -412,8 +412,8 @@ class ApiService {
   /// Get buyer by user ID
   Future<Map<String, dynamic>?> getBuyerByUserId(String userId) async {
     try {
-      final uri = Uri.parse('$baseUrl/buyers/user/$userId');
-      final response = await http.get(uri, headers: _headers);
+      final uri = Uri.parse('$baseUrl/buyers/$userId/');
+      final response = await http.get(uri, headers: _authHeaders);
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -438,7 +438,11 @@ class ApiService {
         body: json.encode(buyerData),
       );
 
-      return response.statusCode == 200;
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        return responseData['success'] == true;
+      }
+      return false;
     } catch (e) {
       debugPrint('Update buyer profile error: $e');
       return false;
