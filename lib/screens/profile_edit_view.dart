@@ -1,290 +1,52 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../components/thai_button.dart';
 import '../components/thai_text_field.dart';
 import '../components/payment_method_selector.dart';
 import '../core/theme/app_colors.dart';
-import '../services/user_service.dart';
-import '../services/buyer_service.dart';
-import '../services/farmer_service.dart';
+import '../viewmodels/profile_edit_viewmodel.dart';
 import '../models/buyer.dart';
 import '../models/farmer.dart';
-import '../core/di/service_locator.dart';
 
-class ProfileEditView extends StatefulWidget {
+class ProfileEditView extends ConsumerWidget {
   const ProfileEditView({super.key});
 
   @override
-  State<ProfileEditView> createState() => _ProfileEditViewState();
-}
-
-class _ProfileEditViewState extends State<ProfileEditView> {
-  final UserService _userService = serviceLocator<UserService>();
-  final BuyerService _buyerService = serviceLocator<BuyerService>();
-  final FarmerService _farmerService = serviceLocator<FarmerService>();
-  final ImagePicker _imagePicker = ImagePicker();
-
-  final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-  File? _selectedImage;
-
-  // Common form controllers
-  late TextEditingController _nameController;
-  late TextEditingController _phoneController;
-  late TextEditingController _locationController; // Buyer specific controllers
-  late TextEditingController _deliveryAddressController;
-  late TextEditingController _deliveryInstructionsController;
-  List<String> _preferences = [];
-
-  // Farmer specific controllers
-  late TextEditingController _farmNameController;
-  late TextEditingController _farmAddressController;
-  late TextEditingController _descriptionController;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeControllers();
-  }
-
-  void _initializeControllers() {
-    final user = _userService.currentUser!;
-
-    // Common fields
-    _nameController = TextEditingController(text: user.name);
-    _phoneController = TextEditingController(text: user.phone);
-    _locationController = TextEditingController(text: user.location);
-    if (user is Buyer) {
-      // Buyer specific fields
-      _deliveryAddressController = TextEditingController(
-        text: user.deliveryAddress ?? '',
-      );
-      _deliveryInstructionsController = TextEditingController(
-        text: user.deliveryInstructions ?? '',
-      );
-      // Convert API preference values to UI display names
-      _preferences =
-          user.preferences
-              ?.map((apiValue) => _mapApiToPaymentMethodUI(apiValue))
-              .toList() ??
-          [];
-    } else if (user is Farmer) {
-      // Farmer specific fields
-      _farmNameController = TextEditingController(text: user.farmName ?? '');
-      _farmAddressController = TextEditingController(
-        text: user.farmAddress ?? '',
-      );
-      _descriptionController = TextEditingController(
-        text: user.farmDescription ?? '',
-      );
-    }
-  }
-
-  Future<void> _pickImage() async {
-    try {
-      // Show bottom sheet to choose between camera and gallery
-      final source = await showModalBottomSheet<ImageSource>(
-        context: context,
-        builder:
-            (context) => SafeArea(
-              child: Wrap(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.photo_library),
-                    title: const Text('Gallery'),
-                    onTap: () => Navigator.pop(context, ImageSource.gallery),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.photo_camera),
-                    title: const Text('Camera'),
-                    onTap: () => Navigator.pop(context, ImageSource.camera),
-                  ),
-                ],
-              ),
-            ),
-      );
-
-      if (source != null) {
-        final XFile? pickedFile = await _imagePicker.pickImage(
-          source: source,
-          maxWidth: 1080,
-          maxHeight: 1080,
-          imageQuality: 80,
-        );
-
-        if (pickedFile != null) {
-          setState(() {
-            _selectedImage = File(pickedFile.path);
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final viewModel = ref.watch(profileEditViewModelProvider.notifier);
+    final state = ref.watch(
+      profileEditViewModelProvider,
+    ); // Listen to state changes for messages
+    ref.listen<ProfileEditState>(profileEditViewModelProvider, (
+      previous,
+      next,
+    ) {
+      if (next.successMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to pick image: $e'),
-            backgroundColor: AppColors.chilliRed,
-          ),
-        );
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    _locationController.dispose();
-    _deliveryAddressController.dispose();
-    _deliveryInstructionsController.dispose();
-    _farmNameController.dispose();
-    _farmAddressController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      final user = _userService.currentUser!;
-
-      if (user is Buyer) {
-        await _updateBuyerProfile();
-      } else if (user is Farmer) {
-        await _updateFarmerProfile();
-      }
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully!'),
+            content: Text(next.successMessage!),
             backgroundColor: AppColors.ricePaddyGreen,
           ),
         );
-        context.pop();
+        // Return true to indicate successful save
+        context.pop(true);
       }
-    } catch (e) {
-      if (mounted) {
+      if (next.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update profile: $e'),
+            content: Text(next.errorMessage!),
             backgroundColor: AppColors.chilliRed,
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
-
-  Future<void> _updateBuyerProfile() async {
-    final buyer = _userService.currentUser as Buyer;
-
-    // Map UI payment method names to API values
-    final mappedPreferences = _preferences.map(_mapPaymentMethodToApi).toList();
-
-    final updatedData = {
-      'name': _nameController.text.trim(),
-      'phone': _phoneController.text.trim(),
-      'location': _locationController.text.trim(),
-      'delivery_address': _deliveryAddressController.text.trim(),
-      'delivery_instructions': _deliveryInstructionsController.text.trim(),
-      'preferred_payment_methods': mappedPreferences,
-    };
-
-    // TODO: Add image upload when backend supports it
-    if (_selectedImage != null) {
-      debugPrint('Profile image selected but upload not implemented yet');
-      // In the future, this would upload the image and add the URL to updatedData
-      // updatedData['profile_image_url'] = await _uploadImage(_selectedImage!);
-    }
-
-    await _buyerService.updateBuyerProfile(buyer.id, updatedData);
-  }
-
-  // Map UI payment method names to API values
-  String _mapPaymentMethodToApi(String uiMethod) {
-    switch (uiMethod) {
-      case 'Cash on Delivery':
-        return 'cash_on_delivery';
-      case 'Bank Transfer':
-        return 'bank_transfer';
-      case 'Mobile Banking':
-        return 'mobile_banking';
-      case 'Credit Card':
-        return 'credit_card';
-      case 'PromptPay':
-        return 'promptpay';
-      case 'QR Code Payment':
-        return 'qr_code';
-      default:
-        return uiMethod.toLowerCase().replaceAll(' ', '_');
-    }
-  }
-
-  // Map API payment method values to UI display names
-  String _mapApiToPaymentMethodUI(String apiMethod) {
-    switch (apiMethod) {
-      case 'cash_on_delivery':
-        return 'Cash on Delivery';
-      case 'bank_transfer':
-        return 'Bank Transfer';
-      case 'mobile_banking':
-        return 'Mobile Banking';
-      case 'credit_card':
-        return 'Credit Card';
-      case 'promptpay':
-        return 'PromptPay';
-      case 'qr_code':
-        return 'QR Code Payment';
-      default:
-        // Convert snake_case to Title Case
-        return apiMethod
-            .split('_')
-            .map((word) => word[0].toUpperCase() + word.substring(1))
-            .join(' ');
-    }
-  }
-
-  Future<void> _updateFarmerProfile() async {
-    final farmer = _userService.currentUser as Farmer;
-
-    final updatedData = {
-      'name': _nameController.text.trim(),
-      'phone': _phoneController.text.trim(),
-      'location': _locationController.text.trim(),
-      'farm_name': _farmNameController.text.trim(),
-      'farm_address': _farmAddressController.text.trim(),
-      'farm_description': _descriptionController.text.trim(),
-    };
-
-    // TODO: Add image upload when backend supports it
-    if (_selectedImage != null) {
-      debugPrint('Profile image selected but upload not implemented yet');
-      // In the future, this would upload the image and add the URL to updatedData
-      // updatedData['profile_image_url'] = await _uploadImage(_selectedImage!);
-    }
-
-    await _farmerService.updateFarmerProfile(farmer.id, updatedData);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final user = _userService.currentUser!;
+    });
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text('Edit Profile'),
         actions: [
-          if (_isLoading)
+          if (state.isLoading)
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(16),
@@ -297,152 +59,153 @@ class _ProfileEditViewState extends State<ProfileEditView> {
             ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Profile Picture Section
-              Center(
-                child: Column(
-                  children: [
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundImage:
-                              _selectedImage != null
-                                  ? FileImage(_selectedImage!)
-                                  : (user.profileImageUrl != null
-                                      ? NetworkImage(user.profileImageUrl!)
-                                      : null),
-                          backgroundColor: AppColors.ricePaddyGreen,
-                          child:
-                              _selectedImage == null &&
-                                      user.profileImageUrl == null
-                                  ? const Icon(
-                                    Icons.person,
-                                    size: 60,
-                                    color: Colors.white,
-                                  )
-                                  : null,
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.ricePaddyGreen,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
+      body:
+          state.isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _buildContent(context, viewModel, state),
+    );
+  }
+
+  Widget _buildContent(
+    BuildContext context,
+    ProfileEditViewModel viewModel,
+    ProfileEditState state,
+  ) {
+    final theme = Theme.of(context);
+    final user = state.user;
+
+    if (user == null) {
+      return const Center(child: Text('No user data available'));
+    }
+
+    return Form(
+      key: state.formKey,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Profile Picture Section
+            Center(
+              child: Column(
+                children: [
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundImage:
+                            state.selectedImage != null
+                                ? FileImage(state.selectedImage!)
+                                : (user.profileImageUrl != null
+                                    ? NetworkImage(user.profileImageUrl!)
+                                    : null),
+                        backgroundColor: AppColors.ricePaddyGreen,
+                        child:
+                            state.selectedImage == null &&
+                                    user.profileImageUrl == null
+                                ? const Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: Colors.white,
+                                )
+                                : null,
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.ricePaddyGreen,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 20,
                             ),
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.camera_alt,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              onPressed: _pickImage,
-                            ),
+                            onPressed:
+                                () => _showImagePicker(context, viewModel),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Tap to change profile picture',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: AppColors.palmAshGray,
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Tap to change profile picture',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.palmAshGray,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
 
-              const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-              // Common Profile Fields
-              Text(
-                'Basic Information',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            // Common Profile Fields
+            Text(
+              'Basic Information',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 16),
+            ),
+            const SizedBox(height: 16),
+            ThaiTextField(
+              label: 'Full Name',
+              controller: state.nameController,
+              prefixIcon: Icons.person_outline,
+              validator: viewModel.validateName,
+            ),
+            const SizedBox(height: 16),
 
-              ThaiTextField(
-                label: 'Full Name',
-                controller: _nameController,
-                prefixIcon: Icons.person_outline,
-                validator: (value) {
-                  if (value?.trim().isEmpty ?? true) {
-                    return 'Please enter your name';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              ThaiTextField(
-                label: 'Phone Number',
-                controller: _phoneController,
-                prefixIcon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-                validator: (value) {
-                  if (value?.trim().isEmpty ?? true) {
-                    return 'Please enter your phone number';
-                  }
-                  // Basic phone number validation
-                  final phoneRegex = RegExp(r'^[0-9\+\-\s\(\)]+$');
-                  if (!phoneRegex.hasMatch(value!.trim())) {
-                    return 'Please enter a valid phone number';
-                  }
-                  if (value.trim().length < 10) {
-                    return 'Phone number must be at least 10 digits';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
+            ThaiTextField(
+              label: 'Phone Number',
+              controller: state.phoneController,
+              prefixIcon: Icons.phone_outlined,
+              keyboardType: TextInputType.phone,
+              validator: viewModel.validatePhone,
+            ),
+            const SizedBox(height: 16),
 
-              ThaiTextField(
-                label: 'Location',
-                controller: _locationController,
-                prefixIcon: Icons.location_on_outlined,
-                validator: (value) {
-                  if (value?.trim().isEmpty ?? true) {
-                    return 'Please enter your location';
-                  }
-                  return null;
-                },
-              ),
+            ThaiTextField(
+              label: 'Location',
+              controller: state.locationController,
+              prefixIcon: Icons.location_on_outlined,
+              validator: viewModel.validateLocation,
+            ),
 
-              const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-              // Role-specific fields
-              if (user is Buyer)
-                ..._buildBuyerFields(theme)
-              else if (user is Farmer)
-                ..._buildFarmerFields(theme),
+            // Role-specific fields
+            if (user is Buyer)
+              ..._buildBuyerFields(context, theme, viewModel, state),
+            if (user is Farmer)
+              ..._buildFarmerFields(context, theme, viewModel, state),
 
-              const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-              // Save Button
-              ThaiButton(
-                label: 'Save Changes',
-                onPressed: _isLoading ? null : _saveProfile,
-                isFullWidth: true,
-                icon: Icons.save,
-              ),
-            ],
-          ),
+            // Save Button
+            ThaiButton(
+              label: 'Save Changes',
+              onPressed: state.isLoading ? null : () => viewModel.saveProfile(),
+              isFullWidth: true,
+              icon: Icons.save,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  List<Widget> _buildBuyerFields(ThemeData theme) {
+  List<Widget> _buildBuyerFields(
+    BuildContext context,
+    ThemeData theme,
+    ProfileEditViewModel viewModel,
+    ProfileEditState state,
+  ) {
     return [
       Text(
         'Delivery & Preferences',
@@ -453,45 +216,36 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       const SizedBox(height: 16),
       ThaiTextField(
         label: 'Default Delivery Address',
-        controller: _deliveryAddressController,
+        controller: state.deliveryAddressController,
         prefixIcon: Icons.home_outlined,
         maxLines: 3,
         hintText: 'Enter your preferred delivery address',
-        validator: (value) {
-          if (value?.trim().isEmpty ?? true) {
-            return 'Please enter your delivery address';
-          }
-          if (value!.trim().length < 10) {
-            return 'Please enter a more detailed address';
-          }
-          return null;
-        },
+        validator: viewModel.validateDeliveryAddress,
       ),
       const SizedBox(height: 16),
 
-      // Delivery Instructions
       ThaiTextField(
         label: 'Delivery Instructions (Optional)',
-        controller: _deliveryInstructionsController,
+        controller: state.deliveryInstructionsController,
         prefixIcon: Icons.note_outlined,
         maxLines: 2,
         hintText: 'e.g., "Call when you arrive", "Leave at front door"',
       ),
       const SizedBox(height: 16),
 
-      // Payment Method Preferences
       PaymentMethodSelector(
-        selectedMethods: _preferences,
-        onSelectionChanged: (methods) {
-          setState(() {
-            _preferences = methods;
-          });
-        },
+        selectedMethods: state.preferences,
+        onSelectionChanged: viewModel.updatePreferences,
       ),
     ];
   }
 
-  List<Widget> _buildFarmerFields(ThemeData theme) {
+  List<Widget> _buildFarmerFields(
+    BuildContext context,
+    ThemeData theme,
+    ProfileEditViewModel viewModel,
+    ProfileEditState state,
+  ) {
     return [
       Text(
         'Farm Information',
@@ -502,39 +256,26 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       const SizedBox(height: 16),
       ThaiTextField(
         label: 'Farm Name',
-        controller: _farmNameController,
+        controller: state.farmNameController,
         prefixIcon: Icons.agriculture_outlined,
         hintText: 'Enter your farm name',
-        validator: (value) {
-          if (value?.trim().isEmpty ?? true) {
-            return 'Please enter your farm name';
-          }
-          return null;
-        },
+        validator: viewModel.validateFarmName,
       ),
       const SizedBox(height: 16),
 
       ThaiTextField(
         label: 'Farm Address',
-        controller: _farmAddressController,
+        controller: state.farmAddressController,
         prefixIcon: Icons.location_on_outlined,
         maxLines: 2,
         hintText: 'Enter your farm address',
-        validator: (value) {
-          if (value?.trim().isEmpty ?? true) {
-            return 'Please enter your farm address';
-          }
-          if (value!.trim().length < 10) {
-            return 'Please enter a more detailed address';
-          }
-          return null;
-        },
+        validator: viewModel.validateFarmAddress,
       ),
       const SizedBox(height: 16),
 
       ThaiTextField(
         label: 'Farm Description',
-        controller: _descriptionController,
+        controller: state.farmDescriptionController,
         prefixIcon: Icons.description_outlined,
         maxLines: 4,
         hintText: 'Describe your farm, farming methods, specialties, etc.',
@@ -552,11 +293,11 @@ class _ProfileEditViewState extends State<ProfileEditView> {
         child: Row(
           children: [
             Icon(
-              (_userService.currentUser as Farmer).isVerified
+              (state.user as Farmer).isVerified
                   ? Icons.verified
                   : Icons.pending,
               color:
-                  (_userService.currentUser as Farmer).isVerified
+                  (state.user as Farmer).isVerified
                       ? AppColors.ricePaddyGreen
                       : AppColors.palmAshGray,
             ),
@@ -572,7 +313,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
                     ),
                   ),
                   Text(
-                    (_userService.currentUser as Farmer).isVerified
+                    (state.user as Farmer).isVerified
                         ? 'Your farm is verified'
                         : 'Verification pending',
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -586,5 +327,34 @@ class _ProfileEditViewState extends State<ProfileEditView> {
         ),
       ),
     ];
+  }
+
+  void _showImagePicker(BuildContext context, ProfileEditViewModel viewModel) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder:
+          (context) => SafeArea(
+            child: Wrap(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Gallery'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    viewModel.pickImage();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.photo_camera),
+                  title: const Text('Camera'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    viewModel.pickImageFromCamera();
+                  },
+                ),
+              ],
+            ),
+          ),
+    );
   }
 }

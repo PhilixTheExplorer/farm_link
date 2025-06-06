@@ -108,7 +108,7 @@ class AppRouter {
       GoRoute(
         path: '/profile-settings',
         name: 'profile-settings',
-        builder: (context, state) => const ProfileSettingsView(),
+        builder: (context, state) => ProfileSettingsView(),
       ),
 
       // Profile Edit Route
