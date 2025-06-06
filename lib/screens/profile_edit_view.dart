@@ -77,7 +77,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
         text: user.farmAddress ?? '',
       );
       _descriptionController = TextEditingController(
-        text: user.description ?? '',
+        text: user.farmDescription ?? '',
       );
     }
   }
@@ -262,7 +262,7 @@ class _ProfileEditViewState extends State<ProfileEditView> {
       'location': _locationController.text.trim(),
       'farm_name': _farmNameController.text.trim(),
       'farm_address': _farmAddressController.text.trim(),
-      'description': _descriptionController.text.trim(),
+      'farm_description': _descriptionController.text.trim(),
     };
 
     // TODO: Add image upload when backend supports it

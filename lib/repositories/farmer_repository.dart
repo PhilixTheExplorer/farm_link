@@ -95,7 +95,6 @@ class FarmerRepository {
   Farmer _createFarmerFromJson(Map<String, dynamic> json) {
     final userData = json['user'] ?? json;
     final profileData = json['profile'] ?? json;
-
     return Farmer(
       id: userData['id'],
       email: userData['email'],
@@ -105,6 +104,8 @@ class FarmerRepository {
       profileImageUrl: userData['profile_image_url'],
       farmName: profileData['farm_name'] ?? '',
       farmAddress: profileData['farm_address'] ?? '',
+      farmDescription:
+          profileData['farm_description'] ?? profileData['description'],
       totalSales: (profileData['total_sales'] ?? 0).toDouble(),
       isVerified: profileData['is_verified'] ?? false,
     );

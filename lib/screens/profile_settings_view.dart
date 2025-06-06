@@ -245,13 +245,13 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                           value: _userService.farmerData!.farmAddress!,
                         ),
                       ],
-                      if (_userService.farmerData?.description != null) ...[
+                      if (_userService.farmerData?.farmDescription != null) ...[
                         const Divider(height: 24),
                         _buildInfoRow(
                           context,
                           icon: Icons.description_outlined,
                           label: 'Description',
-                          value: _userService.farmerData!.description!,
+                          value: _userService.farmerData!.farmDescription!,
                         ),
                       ],
                       const Divider(height: 24),

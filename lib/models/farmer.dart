@@ -3,11 +3,10 @@ import 'user.dart';
 class Farmer extends User {
   final String? farmName;
   final String? farmAddress;
-  final String? description;
+  final String? farmDescription;
   final int totalSales;
   final bool isVerified;
   final int? totalProducts;
-
   Farmer({
     required super.id,
     required super.email,
@@ -19,7 +18,7 @@ class Farmer extends User {
     super.updatedAt,
     this.farmName,
     this.farmAddress,
-    this.description,
+    this.farmDescription,
     this.totalSales = 0,
     this.isVerified = false,
     this.totalProducts,
@@ -43,20 +42,19 @@ class Farmer extends User {
               : null,
       farmName: json['farm_name'] ?? json['farmName'],
       farmAddress: json['farm_address'] ?? json['farmAddress'],
-      description: json['description'],
+      farmDescription: json['farm_description'] ?? json['description'],
       totalSales: json['total_sales'] ?? json['totalSales'] ?? 0,
       isVerified: json['is_verified'] ?? json['isVerified'] ?? false,
       totalProducts: json['total_products'],
     );
   }
-
   @override
   Map<String, dynamic> toJson() {
     final json = super.toJson();
     json.addAll({
       'farm_name': farmName,
       'farm_address': farmAddress,
-      'description': description,
+      'farm_description': farmDescription,
       'total_sales': totalSales,
       'is_verified': isVerified,
       if (totalProducts != null) 'total_products': totalProducts,
@@ -77,7 +75,7 @@ class Farmer extends User {
     DateTime? updatedAt,
     String? farmName,
     String? farmAddress,
-    String? description,
+    String? farmDescription,
     int? totalSales,
     bool? isVerified,
     int? totalProducts,
@@ -93,7 +91,7 @@ class Farmer extends User {
       updatedAt: updatedAt ?? this.updatedAt,
       farmName: farmName ?? this.farmName,
       farmAddress: farmAddress ?? this.farmAddress,
-      description: description ?? this.description,
+      farmDescription: farmDescription ?? this.farmDescription,
       totalSales: totalSales ?? this.totalSales,
       isVerified: isVerified ?? this.isVerified,
       totalProducts: totalProducts ?? this.totalProducts,

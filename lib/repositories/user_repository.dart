@@ -35,7 +35,6 @@ class UserRepository {
     final userData = loginResponse['user'];
     final profileData = loginResponse['profile'];
     final token = loginResponse['token'];
-
     User user;
     if (loginResponse['role']?.toString().toLowerCase() == 'farmer') {
       user = Farmer(
@@ -47,6 +46,8 @@ class UserRepository {
         profileImageUrl: userData['profile_image_url'],
         farmName: profileData['farm_name'] ?? '',
         farmAddress: profileData['farm_address'] ?? '',
+        farmDescription:
+            profileData['farm_description'] ?? profileData['description'],
         totalSales: profileData['total_sales'] ?? 0,
         isVerified: profileData['is_verified'] ?? false,
       );
@@ -93,7 +94,6 @@ class UserRepository {
     final userData = registerResponse['user'];
     final profileData = registerResponse['profile'];
     final token = registerResponse['token'];
-
     User user;
     if (registerResponse['role']?.toString().toLowerCase() == 'farmer') {
       user = Farmer(
@@ -105,6 +105,8 @@ class UserRepository {
         profileImageUrl: userData['profile_image_url'],
         farmName: profileData['farm_name'] ?? '',
         farmAddress: profileData['farm_address'] ?? '',
+        farmDescription:
+            profileData['farm_description'] ?? profileData['description'],
         totalSales: profileData['total_sales'] ?? 0,
         isVerified: profileData['is_verified'] ?? false,
       );
@@ -158,7 +160,6 @@ class UserRepository {
     // Parse response and create user object
     final userData = response['data']['user'];
     final profileData = response['data']['profile'];
-
     if (userData['role']?.toString().toLowerCase() == 'farmer') {
       return Farmer(
         id: userData['id'],
@@ -169,6 +170,8 @@ class UserRepository {
         profileImageUrl: userData['profile_image_url'],
         farmName: profileData['farm_name'] ?? '',
         farmAddress: profileData['farm_address'] ?? '',
+        farmDescription:
+            profileData['farm_description'] ?? profileData['description'],
         totalSales: profileData['total_sales'] ?? 0,
         isVerified: profileData['is_verified'] ?? false,
       );
