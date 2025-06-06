@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart' show ImageSource;
 import '../components/thai_button.dart';
 import '../components/thai_text_field.dart';
+import '../components/image_picker_components.dart';
 import '../core/theme/app_colors.dart';
 import '../models/product.dart';
 import '../viewmodels/product_form_viewmodel.dart';
@@ -164,56 +166,25 @@ class _ProductFormViewState extends State<ProductFormView> {
   }
 
   Widget _buildImagePicker(ThemeData theme) {
-    return Center(
-      child: GestureDetector(
-        onTap: _viewModel.pickImage,
-        child: Container(
-          width: double.infinity,
-          height: 200,
-          decoration: BoxDecoration(
-            color: AppColors.bambooCream,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.palmAshGray.withOpacity(0.3)),
-            image:
-                _viewModel.imageUrl != null
-                    ? DecorationImage(
-                      image: NetworkImage(_viewModel.imageUrl!),
-                      fit: BoxFit.cover,
-                    )
-                    : null,
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: Colors.black.withOpacity(0.3),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _viewModel.imageUrl == null
-                        ? Icons.add_a_photo
-                        : Icons.camera_alt,
-                    size: 32,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _viewModel.imageUrl == null
-                        ? 'Tap to add image'
-                        : 'Tap to change image',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    return ImagePickerWidget(
+      imageUrl: _viewModel.imageUrl,
+      imageFile: _viewModel.selectedImage,
+      height: 200,
+      label: 'Product Image',
+      isLoading: _viewModel.isLoading,
+      onTap: () => _showImagePicker(context),
     );
+  }
+
+  void _showImagePicker(BuildContext context) async {
+    final source = await ImagePickerModal.show(context);
+    if (source != null) {
+      if (source == ImageSource.gallery) {
+        _viewModel.pickImageFromGallery();
+      } else {
+        _viewModel.pickImageFromCamera();
+      }
+    }
   }
 
   Widget _buildQuantitySection(ThemeData theme) {

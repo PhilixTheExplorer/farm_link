@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../components/thai_button.dart';
 import '../components/thai_text_field.dart';
 import '../components/payment_method_selector.dart';
+import '../components/image_picker_components.dart';
 import '../core/theme/app_colors.dart';
 import '../viewmodels/profile_edit_viewmodel.dart';
 import '../models/buyer.dart';
@@ -103,48 +105,12 @@ class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
             Center(
               child: Column(
                 children: [
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundImage:
-                            state.selectedImage != null
-                                ? FileImage(state.selectedImage!)
-                                : (user.profileImageUrl != null
-                                    ? NetworkImage(user.profileImageUrl!)
-                                    : null),
-                        backgroundColor: AppColors.ricePaddyGreen,
-                        child:
-                            state.selectedImage == null &&
-                                    user.profileImageUrl == null
-                                ? const Icon(
-                                  Icons.person,
-                                  size: 60,
-                                  color: Colors.white,
-                                )
-                                : null,
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppColors.ricePaddyGreen,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                            onPressed:
-                                () => _showImagePicker(context, viewModel),
-                          ),
-                        ),
-                      ),
-                    ],
+                  CircularImagePicker(
+                    imageFile: state.selectedImage,
+                    imageUrl: user.profileImageUrl,
+                    radius: 60,
+                    isLoading: state.isImageLoading || state.isSaving,
+                    onTap: () => _showImagePicker(context, viewModel),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -343,32 +309,17 @@ class _ProfileEditViewState extends ConsumerState<ProfileEditView> {
     ];
   }
 
-  void _showImagePicker(BuildContext context, ProfileEditViewModel viewModel) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder:
-          (context) => SafeArea(
-            child: Wrap(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.photo_library),
-                  title: const Text('Gallery'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    viewModel.pickImage();
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.photo_camera),
-                  title: const Text('Camera'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    viewModel.pickImageFromCamera();
-                  },
-                ),
-              ],
-            ),
-          ),
-    );
+  void _showImagePicker(
+    BuildContext context,
+    ProfileEditViewModel viewModel,
+  ) async {
+    final source = await ImagePickerModal.show(context);
+    if (source != null) {
+      if (source == ImageSource.gallery) {
+        viewModel.pickImage();
+      } else {
+        viewModel.pickImageFromCamera();
+      }
+    }
   }
 }

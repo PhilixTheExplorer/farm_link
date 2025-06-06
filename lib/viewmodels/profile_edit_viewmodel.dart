@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 import '../models/user.dart';
 import '../models/buyer.dart';
 import '../models/farmer.dart';
 import '../services/user_service.dart';
 import '../services/buyer_service.dart';
 import '../services/farmer_service.dart';
+import '../services/image_upload_service.dart';
 import '../core/di/service_locator.dart';
 
 // State class for profile edit
@@ -15,9 +14,10 @@ class ProfileEditState {
   final User? user;
   final bool isLoading;
   final bool isSaving;
+  final bool isImageLoading;
   final String? errorMessage;
   final String? successMessage;
-  final File? selectedImage;
+  final PickedImage? selectedImage;
   final bool hasUnsavedChanges;
 
   // Form key for validation
@@ -47,11 +47,11 @@ class ProfileEditState {
   final String farmName;
   final String farmAddress;
   final String farmDescription;
-
   ProfileEditState({
     this.user,
     this.isLoading = false,
     this.isSaving = false,
+    this.isImageLoading = false,
     this.errorMessage,
     this.successMessage,
     this.selectedImage,
@@ -86,14 +86,14 @@ class ProfileEditState {
        farmAddressController = farmAddressController ?? TextEditingController(),
        farmDescriptionController =
            farmDescriptionController ?? TextEditingController();
-
   ProfileEditState copyWith({
     User? user,
     bool? isLoading,
     bool? isSaving,
+    bool? isImageLoading,
     String? errorMessage,
     String? successMessage,
-    File? selectedImage,
+    PickedImage? selectedImage,
     bool? hasUnsavedChanges,
     String? name,
     String? phone,
@@ -109,6 +109,7 @@ class ProfileEditState {
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
+      isImageLoading: isImageLoading ?? this.isImageLoading,
       errorMessage: errorMessage,
       successMessage: successMessage,
       selectedImage: selectedImage ?? this.selectedImage,
@@ -211,7 +212,9 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
   final UserService _userService;
   final BuyerService _buyerService;
   final FarmerService _farmerService;
-  final ImagePicker _imagePicker = ImagePicker();
+  final ImageUploadService _imageUploadService =
+      serviceLocator<ImageUploadService>();
+
   ProfileEditViewModel(
     this._userService,
     this._buyerService,
@@ -363,18 +366,106 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
   // Image selection
   Future<void> pickImage() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
+      state = state.copyWith(isImageLoading: true);
+
+      final imageFile = await _imageUploadService.pickImageFromGallery(
         maxWidth: 800,
         maxHeight: 800,
         imageQuality: 80,
       );
 
-      if (image != null) {
+      if (imageFile != null) {
+        debugPrint('Image picked successfully: ${imageFile.path}');
+        debugPrint('File exists: ${await imageFile.exists()}');
+
+        // Ensure we're updating with a valid file
+        if (await imageFile.exists()) {
+          state = state.copyWith(
+            selectedImage: imageFile,
+            hasUnsavedChanges: true,
+            isImageLoading: false,
+          );
+          debugPrint('State updated with selected image: ${imageFile.path}');
+        } else {
+          debugPrint('Image file does not exist: ${imageFile.path}');
+          state = state.copyWith(
+            isImageLoading: false,
+            errorMessage: 'Selected image file not found',
+          );
+        }
+      } else {
+        debugPrint('No image was selected');
+        state = state.copyWith(isImageLoading: false);
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+      state = state.copyWith(
+        isImageLoading: false,
+        errorMessage: 'Failed to pick image: ${e.toString()}',
+      );
+    }
+  }
+
+  Future<void> pickImageFromCamera() async {
+    try {
+      state = state.copyWith(isImageLoading: true);
+
+      final imageFile = await _imageUploadService.pickImageFromCamera(
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+
+      if (imageFile != null) {
+        debugPrint('Image captured successfully: ${imageFile.path}');
+        debugPrint('File exists: ${await imageFile.exists()}');
+
+        // Ensure we're updating with a valid file
+        if (await imageFile.exists()) {
+          state = state.copyWith(
+            selectedImage: imageFile,
+            hasUnsavedChanges: true,
+            isImageLoading: false,
+          );
+          debugPrint('State updated with captured image: ${imageFile.path}');
+        } else {
+          debugPrint('Image file does not exist: ${imageFile.path}');
+          state = state.copyWith(
+            isImageLoading: false,
+            errorMessage: 'Captured image file not found',
+          );
+        }
+      } else {
+        debugPrint('No image was captured');
+        state = state.copyWith(isImageLoading: false);
+      }
+    } catch (e) {
+      debugPrint('Error taking photo: $e');
+      state = state.copyWith(
+        isImageLoading: false,
+        errorMessage: 'Failed to take photo: ${e.toString()}',
+      );
+    }
+  }
+
+  // Image selection with upload option
+  Future<void> pickImageWithUpload() async {
+    try {
+      final imageFile = await _imageUploadService.pickImageFromGallery(
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+
+      if (imageFile != null) {
         state = state.copyWith(
-          selectedImage: File(image.path),
+          selectedImage: imageFile,
           hasUnsavedChanges: true,
         );
+
+        // Optionally upload to Cloudinary immediately
+        // You can uncomment this if you want immediate upload
+        // await _uploadSelectedImageToCloudinary();
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -384,20 +475,23 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
     }
   }
 
-  Future<void> pickImageFromCamera() async {
+  Future<void> pickImageFromCameraWithUpload() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.camera,
+      final imageFile = await _imageUploadService.pickImageFromCamera(
         maxWidth: 800,
         maxHeight: 800,
         imageQuality: 80,
       );
 
-      if (image != null) {
+      if (imageFile != null) {
         state = state.copyWith(
-          selectedImage: File(image.path),
+          selectedImage: imageFile,
           hasUnsavedChanges: true,
         );
+
+        // Optionally upload to Cloudinary immediately
+        // You can uncomment this if you want immediate upload
+        // await _uploadSelectedImageToCloudinary();
       }
     } catch (e) {
       debugPrint('Error taking photo: $e');
@@ -405,6 +499,35 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
         errorMessage: 'Failed to take photo: ${e.toString()}',
       );
     }
+  } // Upload profile image to Cloudinary
+
+  Future<String?> _uploadSelectedImageToCloudinary() async {
+    if (state.selectedImage == null) return null;
+
+    try {
+      final imageUrl = await _imageUploadService.uploadToCloudinary(
+        state.selectedImage!,
+        folder: 'farm_link/profiles',
+        transformations: {
+          'width': 400,
+          'height': 400,
+          'crop': 'fill',
+          'quality': 'auto',
+          'format': 'auto',
+        },
+      );
+
+      if (imageUrl != null) {
+        debugPrint('Profile image uploaded to Cloudinary: $imageUrl');
+        return imageUrl;
+      }
+    } catch (e) {
+      debugPrint('Error uploading image to Cloudinary: $e');
+      state = state.copyWith(
+        errorMessage: 'Failed to upload image: ${e.toString()}',
+      );
+    }
+    return null;
   }
 
   // Save profile

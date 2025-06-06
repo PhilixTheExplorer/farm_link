@@ -509,17 +509,24 @@ class _ProfileSettingsViewState extends ConsumerState<ProfileSettingsView> {
       children: [
         Icon(icon, size: 20, color: AppColors.palmAshGray),
         const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppColors.palmAshGray,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.palmAshGray,
+                ),
               ),
-            ),
-            Text(value, style: theme.textTheme.bodyLarge),
-          ],
+              Text(
+                value,
+                style: theme.textTheme.bodyLarge,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
+            ],
+          ),
         ),
       ],
     );

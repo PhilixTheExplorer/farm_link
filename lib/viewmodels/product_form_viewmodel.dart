@@ -3,6 +3,7 @@ import '../models/product.dart';
 import '../models/user.dart';
 import '../services/product_service.dart';
 import '../services/user_service.dart';
+import '../services/image_upload_service.dart';
 import '../viewmodels/farmer_dashboard_viewmodel.dart';
 import '../core/di/service_locator.dart';
 
@@ -11,6 +12,8 @@ enum ProductFormMode { create, edit }
 class ProductFormViewModel extends ChangeNotifier {
   final ProductService _productService = serviceLocator<ProductService>();
   final UserService _userService = serviceLocator<UserService>();
+  final ImageUploadService _imageUploadService =
+      serviceLocator<ImageUploadService>();
   final FarmerDashboardViewModel _dashboardViewModel =
       serviceLocator<FarmerDashboardViewModel>();
 
@@ -19,13 +22,13 @@ class ProductFormViewModel extends ChangeNotifier {
   final priceController = TextEditingController();
   final descriptionController = TextEditingController();
   final quantityController = TextEditingController();
-
   // Form state
   ProductFormMode _mode = ProductFormMode.create;
   Product? _originalProduct;
   String _selectedCategory = 'vegetables';
   String _selectedQuantityUnit = 'pcs';
   String? _imageUrl;
+  PickedImage? _selectedImage;
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -65,31 +68,13 @@ class ProductFormViewModel extends ChangeNotifier {
     'bunch',
     'dozen',
   ];
-
-  // Sample images for categories
-  final Map<String, String> sampleImages = {
-    'vegetables':
-        'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400',
-    'fruits': 'https://images.unsplash.com/photo-1557844352-761f2565b576?w=400',
-    'rice':
-        'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400',
-    'herbs':
-        'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=400',
-    'handmade':
-        'https://images.unsplash.com/photo-1505236732187-3d0d5c5e5daf?w=400',
-    'dairy': 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=400',
-    'meat':
-        'https://images.unsplash.com/photo-1603048297172-c92544798d5a?w=400',
-    'other':
-        'https://images.unsplash.com/photo-1601599561213-832382fd07ba?w=400',
-  };
-
   // Getters
   ProductFormMode get mode => _mode;
   Product? get originalProduct => _originalProduct;
   String get selectedCategory => _selectedCategory;
   String get selectedQuantityUnit => _selectedQuantityUnit;
   String? get imageUrl => _imageUrl;
+  PickedImage? get selectedImage => _selectedImage;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isCreateMode => _mode == ProductFormMode.create;
@@ -124,6 +109,7 @@ class ProductFormViewModel extends ChangeNotifier {
     _selectedCategory = 'vegetables';
     _selectedQuantityUnit = 'pcs';
     _imageUrl = null;
+    _selectedImage = null;
     _errorMessage = null;
   }
 
@@ -142,16 +128,15 @@ class ProductFormViewModel extends ChangeNotifier {
 
   // Set default image based on category
   void _setDefaultImage() {
-    _imageUrl = sampleImages[_selectedCategory];
+    // No default image - user must pick one
+    _imageUrl = null;
     notifyListeners();
   }
 
   // Update category
   void updateCategory(String category) {
     _selectedCategory = category;
-    if (_imageUrl == null || sampleImages.containsValue(_imageUrl)) {
-      _imageUrl = sampleImages[category];
-    }
+    // Don't automatically set images - user must pick one
     notifyListeners();
   }
 
@@ -161,10 +146,98 @@ class ProductFormViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Pick new image (for now, cycle through category images)
-  void pickImage() {
-    _imageUrl = sampleImages[_selectedCategory] ?? sampleImages['vegetables']!;
-    notifyListeners();
+  // Pick image from gallery
+  Future<void> pickImageFromGallery() async {
+    try {
+      _setLoading(true); // Set loading state while picking image
+
+      final imageFile = await _imageUploadService.pickImageFromGallery(
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+
+      if (imageFile != null) {
+        // Verify the file exists before updating
+        if (await imageFile.exists()) {
+          _selectedImage = imageFile;
+          _imageUrl = null; // Clear URL when selecting new image
+          debugPrint('Gallery image selected: ${imageFile.path}');
+        } else {
+          debugPrint('Gallery image file does not exist: ${imageFile.path}');
+          _errorMessage = 'Selected image file not found';
+        }
+      } else {
+        debugPrint('No gallery image was selected');
+      }
+    } catch (e) {
+      _errorMessage = 'Failed to pick image: ${e.toString()}';
+      debugPrint('Error picking image from gallery: $e');
+    } finally {
+      _setLoading(false);
+      notifyListeners();
+    }
+  }
+
+  // Pick image from camera
+  Future<void> pickImageFromCamera() async {
+    try {
+      _setLoading(true); // Set loading state while capturing image
+
+      final imageFile = await _imageUploadService.pickImageFromCamera(
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 80,
+      );
+
+      if (imageFile != null) {
+        // Verify the file exists before updating
+        if (await imageFile.exists()) {
+          _selectedImage = imageFile;
+          _imageUrl = null; // Clear URL when selecting new image
+          debugPrint('Camera image captured: ${imageFile.path}');
+        } else {
+          debugPrint('Camera image file does not exist: ${imageFile.path}');
+          _errorMessage = 'Captured image file not found';
+        }
+      } else {
+        debugPrint('No camera image was captured');
+      }
+    } catch (e) {
+      _errorMessage = 'Failed to take photo: ${e.toString()}';
+      debugPrint('Error taking photo: $e');
+    } finally {
+      _setLoading(false);
+      notifyListeners();
+    }
+  }
+
+  // Upload selected image to Cloudinary
+  Future<String?> _uploadImageToCloudinary() async {
+    if (_selectedImage == null) return _imageUrl;
+
+    try {
+      final uploadedUrl = await _imageUploadService.uploadToCloudinary(
+        _selectedImage!,
+        folder: 'farm_link/products',
+        transformations: {
+          'width': 800,
+          'height': 600,
+          'crop': 'fill',
+          'quality': 'auto',
+          'format': 'auto',
+        },
+      );
+
+      if (uploadedUrl != null) {
+        debugPrint('Product image uploaded to Cloudinary: $uploadedUrl');
+        return uploadedUrl;
+      }
+    } catch (e) {
+      debugPrint('Error uploading image to Cloudinary: $e');
+      _errorMessage = 'Failed to upload image: ${e.toString()}';
+    }
+    return null;
   }
 
   // Validate form
@@ -234,7 +307,19 @@ class ProductFormViewModel extends ChangeNotifier {
 
   // Create new product
   Future<bool> _createProduct() async {
-    final farmerId = _userService.farmerData!.id;
+    final farmerId =
+        _userService.farmerData!.id; // Upload image if one is selected
+    String? finalImageUrl = _imageUrl;
+    if (_selectedImage != null) {
+      finalImageUrl = await _uploadImageToCloudinary();
+      if (finalImageUrl == null) {
+        _errorMessage = 'Failed to upload image. Please try again.';
+        return false;
+      }
+    } else if (finalImageUrl == null) {
+      _errorMessage = 'Please select an image for the product.';
+      return false;
+    }
 
     final newProduct = Product(
       id: '', // Will be generated by backend
@@ -247,7 +332,7 @@ class ProductFormViewModel extends ChangeNotifier {
       ),
       quantity: int.parse(quantityController.text),
       unit: _selectedQuantityUnit,
-      imageUrl: _imageUrl ?? sampleImages['vegetables']!,
+      imageUrl: finalImageUrl,
       status: ProductStatus.available,
       createdDate: DateTime.now(),
       lastUpdated: DateTime.now(),
@@ -270,6 +355,13 @@ class ProductFormViewModel extends ChangeNotifier {
     if (_originalProduct == null) {
       _errorMessage = 'Original product data not found';
       return false;
+    } // Upload image if one is selected
+    String? finalImageUrl = _imageUrl;
+    if (_selectedImage != null) {
+      finalImageUrl = await _uploadImageToCloudinary();
+      finalImageUrl ??= _originalProduct!.imageUrl;
+    } else {
+      finalImageUrl ??= _originalProduct!.imageUrl;
     }
 
     final updatedProduct = Product(
@@ -283,7 +375,7 @@ class ProductFormViewModel extends ChangeNotifier {
       ),
       quantity: int.parse(quantityController.text),
       unit: _selectedQuantityUnit,
-      imageUrl: _imageUrl ?? sampleImages['vegetables']!,
+      imageUrl: finalImageUrl,
       status: _originalProduct!.status,
       createdDate: _originalProduct!.createdDate,
       lastUpdated: DateTime.now(),
