@@ -117,11 +117,26 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
             const SizedBox(height: 32),
 
             // Account Information
-            Text(
-              'Account Information',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Account Information',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    context.push('/profile-edit');
+                  },
+                  icon: const Icon(Icons.edit, size: 16),
+                  label: const Text('Edit'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.ricePaddyGreen,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Card(
@@ -149,7 +164,17 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                       label: 'Location',
                       value: _userService.currentUser?.location ?? 'Not set',
                     ),
-                    const Divider(height: 24),
+                    if (_userService.currentUserRole == UserRole.buyer &&
+                        _userService.buyerData?.deliveryAddress != null)
+                      const Divider(height: 24),
+                    if (_userService.currentUserRole == UserRole.buyer &&
+                        _userService.buyerData?.deliveryAddress != null)
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.home_outlined,
+                        label: 'Delivery Address',
+                        value: _userService.buyerData!.deliveryAddress!,
+                      ),
                   ],
                 ),
               ),
@@ -164,19 +189,33 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                 Text(
                   _userService.currentUserRole == UserRole.farmer
                       ? 'Farm Details'
-                      : 'My Orders',
+                      : 'Buyer Information',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                TextButton(
+                TextButton.icon(
                   onPressed: () {
-                    // Navigate to detailed view
+                    if (_userService.currentUserRole == UserRole.farmer) {
+                      context.push('/profile-edit');
+                    } else {
+                      context.push('/orders'); // Navigate to orders for buyers
+                    }
                   },
+                  icon: Icon(
+                    _userService.currentUserRole == UserRole.farmer
+                        ? Icons.edit
+                        : Icons.list_alt,
+                    size: 16,
+                  ),
+                  label: Text(
+                    _userService.currentUserRole == UserRole.farmer
+                        ? 'Edit'
+                        : 'View Orders',
+                  ),
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.tamarindBrown,
                   ),
-                  child: const Text('View All'),
                 ),
               ],
             ),
@@ -196,6 +235,41 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                         icon: Icons.agriculture_outlined,
                         label: 'Farm Name',
                         value: _userService.farmerData?.farmName ?? 'Not set',
+                      ),
+                      if (_userService.farmerData?.farmAddress != null) ...[
+                        const Divider(height: 24),
+                        _buildInfoRow(
+                          context,
+                          icon: Icons.location_on_outlined,
+                          label: 'Farm Address',
+                          value: _userService.farmerData!.farmAddress!,
+                        ),
+                      ],
+                      if (_userService.farmerData?.description != null) ...[
+                        const Divider(height: 24),
+                        _buildInfoRow(
+                          context,
+                          icon: Icons.description_outlined,
+                          label: 'Description',
+                          value: _userService.farmerData!.description!,
+                        ),
+                      ],
+                      const Divider(height: 24),
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.verified_outlined,
+                        label: 'Verification Status',
+                        value:
+                            _userService.farmerData!.isVerified
+                                ? 'Verified'
+                                : 'Pending Verification',
+                      ),
+                      const Divider(height: 24),
+                      _buildInfoRow(
+                        context,
+                        icon: Icons.shopping_cart_outlined,
+                        label: 'Total Sales',
+                        value: '${_userService.farmerData!.totalSales}',
                       ),
                     ],
                   ),
@@ -223,6 +297,18 @@ class _ProfileSettingsViewState extends State<ProfileSettingsView> {
                         value:
                             '฿${_userService.buyerData!.totalSpent.toStringAsFixed(2)}',
                       ),
+                      if (_userService.buyerData?.preferences != null &&
+                          _userService.buyerData!.preferences!.isNotEmpty) ...[
+                        const Divider(height: 24),
+                        _buildInfoRow(
+                          context,
+                          icon: Icons.payment_outlined,
+                          label: 'Payment Preferences',
+                          value: _userService.buyerData!.preferences!.join(
+                            ', ',
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

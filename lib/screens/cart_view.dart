@@ -111,11 +111,8 @@ class _CartViewState extends ConsumerState<CartView>
       return;
     }
 
-    // Navigate to order confirmation with cart data
-    context.go(
-      AppRoutes.orderConfirmation,
-      extra: {'cart': cartState.cart, 'notes': _notesController.text},
-    );
+    // Navigate to checkout view
+    context.push(AppRoutes.checkout);
   }
 
   @override

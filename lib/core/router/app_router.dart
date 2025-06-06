@@ -8,9 +8,11 @@ import '../../screens/product_upload_view.dart';
 import '../../screens/product_edit_view.dart';
 import '../../screens/product_detail_view.dart';
 import '../../screens/cart_view.dart';
+import '../../screens/checkout_view.dart';
 import '../../screens/order_confirmation_view.dart';
 import '../../screens/impact_tracker_view.dart';
 import '../../screens/profile_settings_view.dart';
+import '../../screens/profile_edit_view.dart';
 import '../../services/user_service.dart';
 import '../../models/user.dart';
 import '../../models/product.dart';
@@ -76,13 +78,18 @@ class AppRouter {
           final product = state.extra as Product?;
           return ProductDetailView(product: product);
         },
-      ),
-
-      // Cart Route
+      ), // Cart Route
       GoRoute(
         path: '/cart',
         name: 'cart',
         builder: (context, state) => const CartView(),
+      ),
+
+      // Checkout Route
+      GoRoute(
+        path: '/checkout',
+        name: 'checkout',
+        builder: (context, state) => const CheckoutView(),
       ),
 
       // Order Confirmation Route
@@ -97,13 +104,18 @@ class AppRouter {
         path: '/impact-tracker',
         name: 'impact-tracker',
         builder: (context, state) => const ImpactTrackerView(),
-      ),
-
-      // Profile Settings Route
+      ), // Profile Settings Route
       GoRoute(
         path: '/profile-settings',
         name: 'profile-settings',
         builder: (context, state) => const ProfileSettingsView(),
+      ),
+
+      // Profile Edit Route
+      GoRoute(
+        path: '/profile-edit',
+        name: 'profile-edit',
+        builder: (context, state) => const ProfileEditView(),
       ),
 
       // Connect Test Route (if needed)
@@ -156,6 +168,7 @@ class AppRouter {
         '/product-upload',
         '/product-detail',
         '/cart',
+        '/checkout',
         '/order-confirmation',
         '/impact-tracker',
         '/profile-settings',
@@ -221,6 +234,7 @@ class AppRoutes {
   static const String productEdit = '/product-edit';
   static const String productDetail = '/product-detail';
   static const String cart = '/cart';
+  static const String checkout = '/checkout';
   static const String orderConfirmation = '/order-confirmation';
   static const String impactTracker = '/impact-tracker';
   static const String profileSettings = '/profile-settings';
@@ -247,6 +261,8 @@ class AppRoutes {
         return 'Dashboard';
       case cart:
         return 'Cart';
+      case checkout:
+        return 'Checkout';
       case impactTracker:
         return 'Impact Tracker';
       case profileSettings:

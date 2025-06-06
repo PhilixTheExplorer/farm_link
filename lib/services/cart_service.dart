@@ -225,6 +225,49 @@ class CartService extends ChangeNotifier {
     }
   }
 
+  // Checkout - Create order from cart
+  Future<Map<String, dynamic>?> checkout({
+    required String deliveryAddress,
+    required String paymentMethod,
+    String? notes,
+  }) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      debugPrint('CartService: Processing checkout...');
+      final response = await _apiService.checkout(
+        deliveryAddress: deliveryAddress,
+        paymentMethod: paymentMethod,
+        notes: notes,
+      );
+
+      debugPrint('CartService: Checkout response: $response');
+
+      if (response != null && response['success'] == true) {
+        // Clear cart after successful checkout
+        _cart = const Cart(
+          items: [],
+          summary: CartSummary(itemCount: 0, subtotal: 0.0, total: 0.0),
+        );
+        notifyListeners();
+        debugPrint('CartService: Checkout successful, cart cleared');
+        return response;
+      } else {
+        final errorMsg = response?['message'] ?? 'Checkout failed';
+        debugPrint('CartService: Checkout failed: $errorMsg');
+        _setError(errorMsg);
+        return response;
+      }
+    } catch (e) {
+      debugPrint('CartService: Checkout error: $e');
+      _setError('Checkout failed: ${e.toString()}');
+      return {'success': false, 'message': 'Checkout failed: ${e.toString()}'};
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Private helper methods
   void _setLoading(bool loading) {
     _isLoading = loading;
