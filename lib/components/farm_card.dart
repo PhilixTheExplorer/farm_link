@@ -4,7 +4,6 @@ import '../models/product.dart';
 
 class FarmCard extends StatelessWidget {
   final Product product;
-  final bool showDescription;
   final VoidCallback onTap;
   final bool showFarmerActions;
   final VoidCallback? onEdit;
@@ -13,7 +12,6 @@ class FarmCard extends StatelessWidget {
   const FarmCard({
     super.key,
     required this.product,
-    this.showDescription = true,
     required this.onTap,
     this.showFarmerActions = false,
     this.onEdit,
@@ -122,19 +120,6 @@ class FarmCard extends StatelessWidget {
                             ),
                         ],
                       ),
-
-                      // Description (conditional)
-                      if (showDescription) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          product.description,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.palmAshGray,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
                     ],
                   ),
                 ),

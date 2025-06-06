@@ -244,7 +244,6 @@ class _FarmerDashboardViewState extends State<FarmerDashboardView>
                         final product = _viewModel.products[index];
                         return FarmCard(
                           product: product,
-                          showDescription: false,
                           showFarmerActions: true,
                           onTap: () {
                             context.push(

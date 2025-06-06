@@ -7,6 +7,9 @@ import '../core/theme/app_colors.dart';
 import '../core/router/app_router.dart';
 import '../viewmodels/buyer_marketplace_viewmodel.dart';
 import '../providers/cart_provider.dart';
+import '../services/user_service.dart';
+import '../core/di/service_locator.dart';
+import '../models/user.dart';
 
 class BuyerMarketplaceView extends ConsumerStatefulWidget {
   const BuyerMarketplaceView({super.key});
@@ -46,46 +49,48 @@ class _BuyerMarketplaceViewState extends ConsumerState<BuyerMarketplaceView> {
             onPressed: () => notifier.refreshProducts(),
             tooltip: 'Refresh',
           ),
-          Consumer(
-            builder: (context, ref, child) {
-              final itemCount = ref.watch(cartItemCountProvider);
-              return Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.shopping_cart_outlined),
-                    onPressed: () {
-                      context.push(AppRoutes.cart);
-                    },
-                  ),
-                  if (itemCount > 0)
-                    Positioned(
-                      right: 6,
-                      top: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: AppColors.chilliRed,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          '$itemCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+          // Only show cart button for buyers, not farmers
+          if (serviceLocator<UserService>().currentUserRole == UserRole.buyer)
+            Consumer(
+              builder: (context, ref, child) {
+                final itemCount = ref.watch(cartItemCountProvider);
+                return Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                      onPressed: () {
+                        context.push(AppRoutes.cart);
+                      },
+                    ),
+                    if (itemCount > 0)
+                      Positioned(
+                        right: 6,
+                        top: 6,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: AppColors.chilliRed,
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          textAlign: TextAlign.center,
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            '$itemCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              );
-            },
-          ),
+                  ],
+                );
+              },
+            ),
         ],
       ),
       body: SafeArea(
@@ -462,7 +467,6 @@ class _BuyerMarketplaceViewState extends ConsumerState<BuyerMarketplaceView> {
             final product = filteredProducts[index];
             return FarmCard(
               product: product,
-              showDescription: false,
               onTap: () {
                 // Navigate to product detail
                 context.push(AppRoutes.productDetail, extra: product);
