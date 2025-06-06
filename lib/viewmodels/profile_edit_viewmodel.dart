@@ -465,7 +465,7 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
 
         // Optionally upload to Cloudinary immediately
         // You can uncomment this if you want immediate upload
-        // await _uploadSelectedImageToCloudinary();
+        await _uploadSelectedImageToCloudinary();
       }
     } catch (e) {
       debugPrint('Error picking image: $e');
@@ -491,7 +491,7 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
 
         // Optionally upload to Cloudinary immediately
         // You can uncomment this if you want immediate upload
-        // await _uploadSelectedImageToCloudinary();
+        await _uploadSelectedImageToCloudinary();
       }
     } catch (e) {
       debugPrint('Error taking photo: $e');
