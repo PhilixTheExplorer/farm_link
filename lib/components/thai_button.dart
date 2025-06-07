@@ -71,7 +71,7 @@ class ThaiButton extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (icon != null) ...[
-                      Icon(icon, size: 18),
+                      Icon(icon, size: 18, color: textColor),
                       const SizedBox(width: 8),
                     ],
                     Flexible(
