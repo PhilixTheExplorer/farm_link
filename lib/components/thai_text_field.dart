@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
+import '../core/theme/app_colors.dart';
 
 class ThaiTextField extends StatelessWidget {
   final String label;
@@ -16,7 +16,7 @@ class ThaiTextField extends StatelessWidget {
   final VoidCallback? onTap;
 
   const ThaiTextField({
-    Key? key,
+    super.key,
     required this.label,
     this.hintText,
     this.controller,
@@ -29,7 +29,7 @@ class ThaiTextField extends StatelessWidget {
     this.maxLines = 1,
     this.readOnly = false,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

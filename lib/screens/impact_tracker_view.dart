@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import '../theme/app_colors.dart';
+import '../components/app_drawer.dart';
+import '../core/theme/app_colors.dart';
+import '../core/router/app_router.dart';
 
 class ImpactTrackerView extends StatelessWidget {
   const ImpactTrackerView({Key? key}) : super(key: key);
@@ -8,7 +10,7 @@ class ImpactTrackerView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Sample impact data
     final impactData = {
       'totalSpent': 2450,
@@ -20,13 +22,8 @@ class ImpactTrackerView extends StatelessWidget {
     };
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Your Impact'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      drawer: AppDrawer(currentRoute: AppRoutes.impactTracker),
+      appBar: AppBar(title: const Text('Your Impact')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -60,9 +57,9 @@ class ImpactTrackerView extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Main Impact Stats
             Row(
               children: [
@@ -91,9 +88,9 @@ class ImpactTrackerView extends StatelessWidget {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Farmer Share Progress
             Text(
               'Farmer Share',
@@ -117,7 +114,8 @@ class ImpactTrackerView extends StatelessWidget {
                             painter: ProgressRingPainter(
                               progress: impactData['farmerSharePercent']! / 100,
                               progressColor: AppColors.ricePaddyGreen,
-                              backgroundColor: AppColors.ricePaddyGreen.withOpacity(0.2),
+                              backgroundColor: AppColors.ricePaddyGreen
+                                  .withOpacity(0.2),
                             ),
                             child: Center(
                               child: Text(
@@ -130,9 +128,9 @@ class ImpactTrackerView extends StatelessWidget {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(width: 16),
-                        
+
                         // Description
                         Expanded(
                           child: Column(
@@ -158,9 +156,9 @@ class ImpactTrackerView extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Additional Impact Stats
             Text(
               'Your Achievements',
@@ -169,46 +167,51 @@ class ImpactTrackerView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Orders Placed
             _buildAchievementCard(
               context,
               icon: Icons.shopping_bag_outlined,
               title: 'Orders Placed',
               value: impactData['ordersPlaced'].toString(),
-              progress: impactData['ordersPlaced']! / 10, // Progress towards 10 orders
+              progress:
+                  impactData['ordersPlaced']! /
+                  10, // Progress towards 10 orders
               progressColor: AppColors.tamarindBrown,
               nextMilestone: '10 Orders',
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Local Products Purchased
             _buildAchievementCard(
               context,
               icon: Icons.location_on_outlined,
               title: 'Local Products',
               value: impactData['localProducts'].toString(),
-              progress: impactData['localProducts']! / 20, // Progress towards 20 products
+              progress:
+                  impactData['localProducts']! /
+                  20, // Progress towards 20 products
               progressColor: AppColors.chilliRed,
               nextMilestone: '20 Products',
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Carbon Footprint Saved
             _buildAchievementCard(
               context,
               icon: Icons.eco_outlined,
               title: 'Carbon Saved',
               value: '${impactData['carbonSaved']} kg',
-              progress: impactData['carbonSaved']! / 50, // Progress towards 50 kg
+              progress:
+                  impactData['carbonSaved']! / 50, // Progress towards 50 kg
               progressColor: AppColors.ricePaddyGreen,
               nextMilestone: '50 kg CO₂',
             ),
-            
+
             const SizedBox(height: 32),
-            
+
             // Motivational Message
             Container(
               padding: const EdgeInsets.all(16),
@@ -262,7 +265,7 @@ class ImpactTrackerView extends StatelessWidget {
     required Color color,
   }) {
     final theme = Theme.of(context);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -275,11 +278,7 @@ class ImpactTrackerView extends StatelessWidget {
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
-              ),
+              child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 16),
             Text(
@@ -319,7 +318,7 @@ class ImpactTrackerView extends StatelessWidget {
     required String nextMilestone,
   }) {
     final theme = Theme.of(context);
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -334,11 +333,7 @@ class ImpactTrackerView extends StatelessWidget {
                     color: progressColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    icon,
-                    color: progressColor,
-                    size: 24,
-                  ),
+                  child: Icon(icon, color: progressColor, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -406,43 +401,45 @@ class ProgressRingPainter extends CustomPainter {
   final double progress;
   final Color progressColor;
   final Color backgroundColor;
-  
+
   ProgressRingPainter({
     required this.progress,
     required this.progressColor,
     required this.backgroundColor,
   });
-  
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = math.min(size.width, size.height) / 2;
     final strokeWidth = radius * 0.2;
-    
+
     // Background circle
-    final backgroundPaint = Paint()
-      ..color = backgroundColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-    
+    final backgroundPaint =
+        Paint()
+          ..color = backgroundColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth;
+
     canvas.drawCircle(center, radius, backgroundPaint);
-    
+
     // Progress arc
-    final progressPaint = Paint()
-      ..color = progressColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-    
+    final progressPaint =
+        Paint()
+          ..color = progressColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.round;
+
     final progressRect = Rect.fromCircle(center: center, radius: radius);
-    
+
     // Start from the top (270 degrees) and go clockwise
     final startAngle = -math.pi / 2;
     final sweepAngle = 2 * math.pi * progress;
-    
+
     canvas.drawArc(progressRect, startAngle, sweepAngle, false, progressPaint);
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
