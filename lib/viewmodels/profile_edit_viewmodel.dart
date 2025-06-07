@@ -543,10 +543,21 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
         successMessage: null,
       );
 
+      // Upload image first if one is selected
+      String? profileImageUrl;
+      if (state.selectedImage != null) {
+        profileImageUrl = await _uploadSelectedImageToCloudinary();
+        if (profileImageUrl == null) {
+          debugPrint('Warning: Failed to upload profile image');
+        } else {
+          debugPrint('Successfully uploaded profile image: $profileImageUrl');
+        }
+      }
+
       if (state.isBuyer) {
-        await _saveBuyerProfile();
+        await _saveBuyerProfile(profileImageUrl);
       } else if (state.isFarmer) {
-        await _saveFarmerProfile();
+        await _saveFarmerProfile(profileImageUrl);
       }
 
       state = state.copyWith(
@@ -569,7 +580,7 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
     }
   }
 
-  Future<void> _saveBuyerProfile() async {
+  Future<void> _saveBuyerProfile([String? profileImageUrl]) async {
     final apiPreferences =
         state.preferences
             .map((uiValue) => _mapPaymentMethodUIToApi(uiValue))
@@ -588,6 +599,8 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
               ? null
               : state.deliveryInstructionsController.text.trim(),
       'preferred_payment_methods': apiPreferences,
+      // Add profileImageUrl if provided
+      if (profileImageUrl != null) 'profile_image_url': profileImageUrl,
     };
 
     // Remove null values
@@ -596,7 +609,7 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
     await _buyerService.updateBuyerProfile(state.user!.id, buyerData);
   }
 
-  Future<void> _saveFarmerProfile() async {
+  Future<void> _saveFarmerProfile([String? profileImageUrl]) async {
     final farmerData = <String, dynamic>{
       'name': state.nameController.text.trim(),
       'phone': state.phoneController.text.trim(),
@@ -613,6 +626,8 @@ class ProfileEditViewModel extends StateNotifier<ProfileEditState> {
           state.farmDescriptionController.text.trim().isEmpty
               ? null
               : state.farmDescriptionController.text.trim(),
+      // Add profileImageUrl if provided
+      if (profileImageUrl != null) 'profile_image_url': profileImageUrl,
     };
 
     // Remove null values

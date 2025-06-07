@@ -341,6 +341,9 @@ class AppDrawer extends StatelessWidget {
                   UserService().logout(); // Clear user data
                   context.go(AppRoutes.login);
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.chilliRed,
+                ),
                 child: const Text('Logout'),
               ),
             ],
