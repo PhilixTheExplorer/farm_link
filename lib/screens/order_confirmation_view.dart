@@ -496,6 +496,7 @@ class OrderConfirmationView extends StatelessWidget {
                       ),
                       onPressed: () {
                         // Navigate to orders
+                        context.push(AppRoutes.orders);
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.tamarindBrown,

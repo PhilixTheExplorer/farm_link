@@ -1,3 +1,4 @@
+import 'package:farm_link/models/order.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../screens/home_view.dart';
@@ -13,6 +14,8 @@ import '../../screens/order_confirmation_view.dart';
 import '../../screens/impact_tracker_view.dart';
 import '../../screens/profile_settings_view.dart';
 import '../../screens/profile_edit_view.dart';
+import '../../screens/orders_view.dart';
+import '../../screens/order_detail_view.dart';
 import '../../services/user_service.dart';
 import '../../models/user.dart';
 import '../../models/product.dart';
@@ -90,13 +93,27 @@ class AppRouter {
         path: '/checkout',
         name: 'checkout',
         builder: (context, state) => const CheckoutView(),
-      ),
-
-      // Order Confirmation Route
+      ), // Order Confirmation Route
       GoRoute(
         path: '/order-confirmation',
         name: 'order-confirmation',
         builder: (context, state) => const OrderConfirmationView(),
+      ),
+
+      // Orders View Route
+      GoRoute(
+        path: '/orders',
+        name: 'orders',
+        builder: (context, state) => const OrdersView(),
+      ),
+
+      // Order Detail Route
+      GoRoute(
+        path: '/order-detail',
+        name: 'order-detail',
+        builder: (context, state) {
+          return OrderDetailView(order: state.extra as Order);
+        },
       ),
 
       // Impact Tracker Route
@@ -104,7 +121,9 @@ class AppRouter {
         path: '/impact-tracker',
         name: 'impact-tracker',
         builder: (context, state) => const ImpactTrackerView(),
-      ), // Profile Settings Route
+      ),
+
+      // Profile Settings Route
       GoRoute(
         path: '/profile-settings',
         name: 'profile-settings',
@@ -116,15 +135,6 @@ class AppRouter {
         path: '/profile-edit',
         name: 'profile-edit',
         builder: (context, state) => const ProfileEditView(),
-      ),
-
-      // Connect Test Route (if needed)
-      GoRoute(
-        path: '/connect-test',
-        name: 'connect-test',
-        builder:
-            (context, state) =>
-                const Scaffold(body: Center(child: Text('Connect Test Page'))),
       ),
     ],
 
@@ -169,6 +179,8 @@ class AppRouter {
         '/product-detail',
         '/cart',
         '/checkout',
+        '/orders',
+        '/order-detail',
         '/order-confirmation',
         '/impact-tracker',
         '/profile-settings',
@@ -236,6 +248,8 @@ class AppRoutes {
   static const String cart = '/cart';
   static const String checkout = '/checkout';
   static const String orderConfirmation = '/order-confirmation';
+  static const String orders = '/orders';
+  static const String orderDetail = '/order-detail';
   static const String impactTracker = '/impact-tracker';
   static const String profileSettings = '/profile-settings';
   static const String connectTest = '/connect-test';
@@ -273,6 +287,10 @@ class AppRoutes {
         return 'Product Details';
       case orderConfirmation:
         return 'Order Confirmed';
+      case orders:
+        return 'My Orders';
+      case orderDetail:
+        return 'Order Details';
       default:
         return '';
     }
