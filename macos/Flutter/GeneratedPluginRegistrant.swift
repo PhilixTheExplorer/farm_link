@@ -5,6 +5,7 @@
 import FlutterMacOS
 import Foundation
 
+<<<<<<< HEAD
 import connectivity_plus
 import file_selector_macos
 import flutter_secure_storage_macos
@@ -21,4 +22,10 @@ func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   SharedPreferencesPlugin.register(with: registry.registrar(forPlugin: "SharedPreferencesPlugin"))
   SqflitePlugin.register(with: registry.registrar(forPlugin: "SqflitePlugin"))
   FVPVideoPlayerPlugin.register(with: registry.registrar(forPlugin: "FVPVideoPlayerPlugin"))
+=======
+import path_provider_foundation
+
+func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
+  PathProviderPlugin.register(with: registry.registrar(forPlugin: "PathProviderPlugin"))
+>>>>>>> 21d9eee1963d88e000bfdac62f07d2a6bbdb2295
 }
